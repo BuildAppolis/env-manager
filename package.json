@@ -1,15 +1,45 @@
 {
   "name": "@buildappolis/env-manager",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Enterprise-grade environment variable management system with encryption, snapshots, and validation",
-  "main": "dist/server/entry.mjs",
+  "main": "index.ts",
+  "types": "index.ts",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "import": "./index.ts",
+      "require": "./index.ts"
+    },
+    "./types": {
+      "types": "./src/types.ts",
+      "import": "./src/types.ts"
+    },
+    "./client": {
+      "types": "./src/lib/env-manager.ts",
+      "import": "./src/lib/env-manager.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "types.ts",
+    "index.ts",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md",
+    "VERSION"
+  ],
   "scripts": {
     "dev": "astro dev",
     "start": "node dist/server/entry.mjs",
     "build": "astro build",
     "preview": "astro preview",
-    "serve": "npm run build && npm run start"
+    "serve": "npm run build && npm run start",
+    "version:patch": "node scripts/bump-version.js patch",
+    "version:minor": "node scripts/bump-version.js minor",
+    "version:major": "node scripts/bump-version.js major",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "astro": "^4.0.0",

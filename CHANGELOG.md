@@ -1,0 +1,51 @@
+# Changelog
+
+All notable changes to BuildAppolis Env-Manager will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [1.0.1] - 2024-08-18
+
+### Added
+- Proper TypeScript type exports in package.json
+- Main index.ts file for centralized exports
+- Export mappings for better module resolution
+- Files field in package.json to control published content
+
+### Fixed
+- TypeScript types not being accessible when importing the package
+- Module resolution issues with TypeScript projects
+
+### Changed
+- Main entry point changed from dist/server/entry.mjs to index.ts
+- Added explicit exports field for better ESM support
+
+## [1.0.0] - 2024-08-18
+
+### Added
+- Initial release of BuildAppolis Env-Manager
+- Web-based UI for managing environment variables
+- Encrypted storage using SQLite database
+- Snapshot functionality for versioning configurations
+- Project validation against env.config.ts requirements
+- Docker support with Dockerfile and docker-compose.yml
+- Astro-based frontend with TypeScript
+- API endpoints for programmatic access
+- BuildAppolis custom license for commercial protection
+- Export functionality for .env and .env.example files
+- Categories and filtering for variable organization
+- Password protection for sensitive operations
+- Modular component architecture
+- Optimized bundle size (14KB JS, 3.6KB gzipped)
+
+### Security
+- Sensitive variables are automatically encrypted at rest
+- Password-based authentication for access control
+- Secure export with password confirmation
+
+[Unreleased]: https://github.com/buildappolis/env-manager/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/buildappolis/env-manager/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/buildappolis/env-manager/releases/tag/v1.0.0
