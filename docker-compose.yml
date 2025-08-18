@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  env-manager:
+    image: buildappolis/env-manager:latest
+    container_name: buildappolis-env-manager
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - HOST=0.0.0.0
+      - ENV_MANAGER_PASSWORD=${ENV_MANAGER_PASSWORD:-changeme}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-generate-a-secure-32-character-key}
+      - DATABASE_PATH=/app/data/env-manager.db
+      - ENABLE_SNAPSHOTS=true
+      - ENABLE_EXPORT=true
+      - ENABLE_API=true
+    volumes:
+      - env-data:/app/data
+      - ./env.config.ts:/app/env.config.ts:ro  # Mount project config (read-only)
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "com.buildappolis.product=env-manager"
+      - "com.buildappolis.website=www.buildappolis.com"
+      - "com.buildappolis.license=BuildAppolis-License"
+
+volumes:
+  env-data:
+    name: buildappolis-env-manager-data

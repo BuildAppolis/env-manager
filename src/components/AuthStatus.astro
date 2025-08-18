@@ -1,0 +1,32 @@
+---
+export interface Props {
+  authenticated?: boolean;
+}
+
+const { authenticated = false } = Astro.props;
+---
+
+<div class="auth-status" id="authStatus">
+  <span class="status-indicator" id="statusIndicator">
+    {authenticated ? '🔓' : '🔒'}
+  </span>
+  <span id="statusText">
+    {authenticated ? 'Authenticated' : 'Not Authenticated'}
+  </span>
+</div>
+
+<style>
+  .auth-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--surface-color);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+  }
+
+  .status-indicator {
+    font-size: 1.2rem;
+  }
+</style>

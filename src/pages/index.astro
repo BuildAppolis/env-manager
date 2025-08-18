@@ -1,0 +1,267 @@
+---
+import AuthStatus from '../components/AuthStatus.astro';
+import LoginForm from '../components/LoginForm.astro';
+import TabBar from '../components/TabBar.astro';
+import VariablesList from '../components/VariablesList.astro';
+import SnapshotsList from '../components/SnapshotsList.astro';
+import ProjectStatus from '../components/ProjectStatus.astro';
+import VariableModal from '../components/modals/VariableModal.astro';
+import PasswordModal from '../components/modals/PasswordModal.astro';
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Environment Manager</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🔧 Environment Manager</h1>
+      <AuthStatus />
+    </header>
+
+    <LoginForm />
+
+    <div id="mainSection" class="section" style="display: none;">
+      <TabBar activeTab="variables" />
+      
+      <VariablesList />
+      <SnapshotsList />
+      <ProjectStatus />
+    </div>
+  </div>
+
+  <VariableModal />
+  <PasswordModal />
+
+  <script>
+    import { EnvManager } from '../lib/env-manager';
+    import { UIManager } from '../lib/ui-manager';
+
+    // Initialize when DOM is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+      const envManager = new EnvManager({ apiBasePath: '/api' });
+      const uiManager = new UIManager(envManager);
+      
+      // Make envManager available globally for debugging
+      (window as any).envManager = envManager;
+      (window as any).uiManager = uiManager;
+      
+      // Initialize the UI
+      uiManager.init();
+    });
+  </script>
+
+  <style>
+    :root {
+      --primary-color: #4f46e5;
+      --primary-hover: #4338ca;
+      --secondary-bg: #f3f4f6;
+      --warning-color: #f59e0b;
+      --danger-color: #ef4444;
+      --surface-color: #ffffff;
+      --input-bg: #ffffff;
+      --border-color: #e5e7eb;
+      --text-primary: #111827;
+      --text-secondary: #6b7280;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --primary-color: #6366f1;
+        --primary-hover: #4f46e5;
+        --secondary-bg: #1f2937;
+        --warning-color: #f59e0b;
+        --danger-color: #f87171;
+        --surface-color: #111827;
+        --input-bg: #1f2937;
+        --border-color: #374151;
+        --text-primary: #f9fafb;
+        --text-secondary: #9ca3af;
+      }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 2rem;
+      color: var(--text-primary);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: var(--surface-color);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .section {
+      margin-top: 2rem;
+    }
+
+    /* Component-specific styles for dynamic content */
+    .variable-item,
+    .snapshot-item {
+      background: var(--secondary-bg);
+      padding: 1rem;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: transform 0.2s;
+    }
+
+    .variable-item:hover,
+    .snapshot-item:hover {
+      transform: translateX(4px);
+    }
+
+    .variable-info,
+    .snapshot-info {
+      flex: 1;
+    }
+
+    .variable-name,
+    .snapshot-name {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .variable-value {
+      font-family: monospace;
+      color: var(--text-secondary);
+      margin-bottom: 0.25rem;
+    }
+
+    .variable-meta,
+    .snapshot-meta {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .variable-actions,
+    .snapshot-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn-danger {
+      background: var(--danger-color);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .status-group {
+      background: var(--secondary-bg);
+      padding: 1.5rem;
+      border-radius: 8px;
+      border-left: 4px solid var(--border-color);
+    }
+
+    .status-group.valid {
+      border-left-color: #10b981;
+    }
+
+    .status-group.invalid {
+      border-left-color: #ef4444;
+    }
+
+    .group-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .group-name {
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .group-status {
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .group-status.valid {
+      background: #10b981;
+      color: white;
+    }
+
+    .group-status.invalid {
+      background: #ef4444;
+      color: white;
+    }
+
+    .variable-status {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .variable-status-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem;
+      background: var(--surface-color);
+      border-radius: 6px;
+    }
+
+    .variable-errors {
+      color: var(--danger-color);
+      font-size: 0.75rem;
+      margin-left: 0.5rem;
+    }
+
+    .status-icon {
+      font-size: 1.2rem;
+    }
+  </style>
+</body>
+</html>

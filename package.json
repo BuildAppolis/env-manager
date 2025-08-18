@@ -1,0 +1,43 @@
+{
+  "name": "@buildappolis/env-manager",
+  "version": "1.0.0",
+  "description": "Enterprise-grade environment variable management system with encryption, snapshots, and validation",
+  "main": "dist/server/entry.mjs",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "node dist/server/entry.mjs",
+    "build": "astro build",
+    "preview": "astro preview",
+    "serve": "npm run build && npm run start"
+  },
+  "dependencies": {
+    "astro": "^4.0.0",
+    "@astrojs/node": "^8.0.0",
+    "better-sqlite3": "^9.2.2",
+    "commander": "^11.1.0",
+    "typescript": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  },
+  "keywords": [
+    "environment",
+    "variables",
+    "env-manager",
+    "configuration",
+    "secrets",
+    "encryption",
+    "buildappolis"
+  ],
+  "author": "BuildAppolis <dev@buildappolis.com> (www.buildappolis.com)",
+  "license": "SEE LICENSE IN LICENSE",
+  "homepage": "https://github.com/buildappolis/env-manager",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/buildappolis/env-manager.git"
+  },
+  "bugs": {
+    "url": "https://github.com/buildappolis/env-manager/issues"
+  }
+}

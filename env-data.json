@@ -1,0 +1,11 @@
+{
+  "variables": [],
+  "history": [],
+  "snapshots": [],
+  "auth": {
+    "isAuthenticated": true,
+    "salt": "642a38703eb4d8e832f0a4d255461b56",
+    "passwordHash": "ec4fa24220cc4baf9289fa8856dff9363e8d6f581c6e040a6f7b56ad942e0cc63dc27090536648ef01d4531ba0fde12e64c944c6a529b7c2457196fc79fb75f1",
+    "lastAuth": 1755555739535
+  }
+}

@@ -1,0 +1,122 @@
+---
+import type { DatabaseVariable } from '../types';
+
+export interface Props {
+  variables?: DatabaseVariable[];
+}
+
+const { variables = [] } = Astro.props;
+---
+
+<div id="variablesTab" class="tab-content active">
+  <div class="section-header">
+    <h2>Environment Variables</h2>
+    <div class="header-actions">
+      <button id="exportExampleBtn" class="btn-secondary">Export .env.example</button>
+      <button id="exportEnvBtn" class="btn-warning">Export .env</button>
+      <button id="addVariableBtn" class="btn-primary">Add Variable</button>
+    </div>
+  </div>
+  
+  <div class="filters">
+    <input type="text" id="searchFilter" placeholder="Search variables..." />
+    <select id="categoryFilter">
+      <option value="">All Categories</option>
+      <option value="database">Database</option>
+      <option value="auth">Authentication</option>
+      <option value="api">API Keys</option>
+      <option value="debug">Debug</option>
+      <option value="other">Other</option>
+    </select>
+  </div>
+
+  <div id="variablesList" class="variables-list">
+    <!-- Variables will be rendered dynamically -->
+  </div>
+</div>
+
+<style>
+  .tab-content {
+    display: none;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .filters {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .filters input {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--input-bg);
+    color: var(--text-primary);
+  }
+
+  .filters select {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--input-bg);
+    color: var(--text-primary);
+    min-width: 150px;
+  }
+
+  .variables-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-warning {
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--primary-color);
+    color: white;
+  }
+
+  .btn-secondary {
+    background: var(--secondary-bg);
+    color: var(--text-primary);
+  }
+
+  .btn-warning {
+    background: var(--warning-color);
+    color: white;
+  }
+
+  .btn-primary:hover,
+  .btn-secondary:hover,
+  .btn-warning:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+</style>

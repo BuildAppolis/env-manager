@@ -1,0 +1,64 @@
+---
+export interface Props {
+  activeTab?: string;
+}
+
+const { activeTab = 'variables' } = Astro.props;
+
+const tabs = [
+  { id: 'variables', label: 'Variables' },
+  { id: 'snapshots', label: 'Snapshots' },
+  { id: 'project', label: 'Project Status' }
+];
+---
+
+<div class="tabs">
+  {tabs.map(tab => (
+    <button 
+      class={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
+      data-tab={tab.id}
+    >
+      {tab.label}
+    </button>
+  ))}
+</div>
+
+<style>
+  .tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0;
+  }
+
+  .tab-button {
+    background: none;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+  }
+
+  .tab-button:hover {
+    color: var(--text-primary);
+  }
+
+  .tab-button.active {
+    color: var(--primary-color);
+  }
+
+  .tab-button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--primary-color);
+  }
+</style>

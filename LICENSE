@@ -1,0 +1,60 @@
+BuildAppolis License v1.0
+
+Copyright (c) 2024 BuildAppolis (www.buildappolis.com)
+
+TERMS AND CONDITIONS
+
+1. DEFINITIONS
+   - "Software" refers to the Env-Manager software and associated documentation
+   - "Commercial Use" means use of the Software for any revenue-generating purpose
+   - "Cloud Service" refers to BuildAppolis' hosted env-manager service
+
+2. GRANT OF LICENSE
+   Subject to the terms of this license, permission is hereby granted, free of charge,
+   to any person obtaining a copy of this Software to:
+   
+   a) Use the Software for personal, educational, and non-commercial purposes
+   b) Modify the Software for personal use
+   c) Contribute improvements back to the original repository
+
+3. RESTRICTIONS
+   You may NOT:
+   a) Redistribute the Software or any derivative works as your own product
+   b) Remove or alter any proprietary notices, labels, or marks
+   c) Use the Software for Commercial Use without a commercial license
+   d) Create competing services based on this Software
+   e) White-label or rebrand the Software
+
+4. COMMERCIAL USE
+   Commercial use of this Software requires:
+   a) A valid commercial license from BuildAppolis, OR
+   b) Use of BuildAppolis Cloud Service (www.buildappolis.com)
+   
+   Contact: license@buildappolis.com for commercial licensing
+
+5. ATTRIBUTION
+   All copies or substantial portions of the Software must include:
+   a) This license file
+   b) Clear attribution to BuildAppolis (www.buildappolis.com)
+   c) A link to the original repository
+
+6. CONTRIBUTIONS
+   By contributing to this project, you agree that your contributions will be
+   licensed under this same license and become part of the Software.
+
+7. NO WARRANTY
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+8. TERMINATION
+   This license automatically terminates if you violate any of these restrictions
+   and may be terminated by BuildAppolis at any time.
+
+For questions about this license or commercial use, contact:
+BuildAppolis - www.buildappolis.com
+Email: license@buildappolis.com
