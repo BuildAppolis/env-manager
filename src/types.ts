@@ -28,6 +28,7 @@ export interface ProjectVariableConfig {
   minLength?: number
   defaultValue?: string
   default?: string  // Alias for defaultValue
+  example?: string  // Example value for documentation
   generateSecret?: boolean
   generate?: 'uuid' | 'crypto' | 'password'  // Generation strategy
 }
@@ -39,9 +40,17 @@ export interface ProjectRequirementGroup {
   variables: ProjectVariableConfig[]
 }
 
+export interface CustomValidation {
+  name: string
+  description?: string
+  async?: boolean
+  validate?: (variables: Record<string, string>) => boolean | Promise<boolean>
+}
+
 export interface ProjectValidation {
   requiredGroups?: string[]
   allowExtraVariables?: boolean
+  customValidation?: CustomValidation[]
 }
 
 export interface ProjectConfig {
