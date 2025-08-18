@@ -21,6 +21,8 @@ export type {
   ProjectVariableConfig,
   ProjectRequirementGroup,
   ProjectValidation,
+  CustomValidation,
+  DevServerConfig,
   ProjectConfig,
   ValidationResults,
   VariableResult,

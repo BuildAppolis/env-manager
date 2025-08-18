@@ -53,12 +53,22 @@ export interface ProjectValidation {
   customValidation?: CustomValidation[]
 }
 
+export interface DevServerConfig {
+  blockUntilReady?: boolean
+  showProgress?: boolean
+  autoGenerate?: boolean
+  validateOnStart?: boolean
+}
+
 export interface ProjectConfig {
   projectName: string
-  version: string
+  projectVersion?: string  // Version of the project using env-manager
+  version?: string  // Alias for projectVersion
+  envManagerVersion?: string  // Expected version of env-manager
   description?: string
   requirements: Record<string, ProjectRequirementGroup>
   validation?: ProjectValidation
+  devServer?: DevServerConfig
 }
 
 // Validation Result Types
