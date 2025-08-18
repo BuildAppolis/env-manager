@@ -1,5 +1,4 @@
 import { A as AstroError, E as EndpointDidNotReturnAResponse, I as InvalidComponentArgs, a as AstroGlobUsedOutside, b as AstroGlobNoMatch, M as MissingMediaQueryDirective, N as NoMatchingImport, O as OnlyResponseCanBeReturned, R as ResponseSentError, c as NoMatchingRenderer, d as NoClientOnlyHint, e as NoClientEntrypoint } from './assets-service_DpLAZY03.mjs';
-import { clsx } from 'clsx';
 
 const ASTRO_VERSION = "4.16.18";
 const REROUTE_DIRECTIVE_HEADER = "X-Astro-Reroute";
@@ -13,6 +12,10 @@ const clientAddressSymbol = Symbol.for("astro.clientAddress");
 const clientLocalsSymbol = Symbol.for("astro.locals");
 const originPathnameSymbol = Symbol.for("astro.originPathname");
 const responseSentSymbol = Symbol.for("astro.responseSent");
+
+function getDefaultExportFromCjs (x) {
+	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+}
 
 let FORCE_COLOR, NODE_DISABLE_COLORS, NO_COLOR, TERM, isTTY=true;
 if (typeof process !== 'undefined') {
@@ -294,6 +297,8 @@ function createRenderInstruction(instruction) {
 function isRenderInstruction(chunk) {
   return chunk && typeof chunk === "object" && chunk[RenderInstructionSymbol];
 }
+
+function r(e){var t,f,n="";if("string"==typeof e||"number"==typeof e)n+=e;else if("object"==typeof e)if(Array.isArray(e)){var o=e.length;for(t=0;t<o;t++)e[t]&&(f=r(e[t]))&&(n&&(n+=" "),n+=f);}else for(f in e)e[f]&&(n&&(n+=" "),n+=f);return n}function clsx(){for(var e,t,f=0,n="",o=arguments.length;f<o;f++)(e=arguments[f])&&(t=r(e))&&(n&&(n+=" "),n+=t);return n}
 
 const PROP_TYPE = {
   Value: 0,
@@ -2310,10 +2315,6 @@ async function renderPage(result, componentFactory, props, children, streaming, 
   } else {
     return new Response(body, { ...init, headers });
   }
-}
-
-function getDefaultExportFromCjs (x) {
-	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
 }
 
 /*! https://mths.be/cssesc v3.0.0 by @mathias */

@@ -1,9 +1,7 @@
 import { Http2ServerResponse } from 'node:http2';
-import { R as ROUTE_TYPE_HEADER, g as REROUTE_DIRECTIVE_HEADER, h as bold, i as red, y as yellow, j as dim, k as blue, l as decryptString, n as createSlotValueFromString, e as renderComponent, r as renderTemplate, D as DEFAULT_404_COMPONENT, o as renderSlotToString, p as renderJSX, q as chunkToString, t as isRenderInstruction, u as originPathnameSymbol, A as ASTRO_VERSION, v as clientLocalsSymbol, w as clientAddressSymbol, x as responseSentSymbol$1, z as renderPage, B as REWRITE_DIRECTIVE_HEADER_KEY, C as REWRITE_DIRECTIVE_HEADER_VALUE, E as renderEndpoint, F as REROUTABLE_STATUS_CODES, G as getDefaultExportFromCjs } from './astro/server_iz4PVnHV.mjs';
+import { R as ROUTE_TYPE_HEADER, g as REROUTE_DIRECTIVE_HEADER, h as bold, i as red, y as yellow, j as dim, k as blue, l as decryptString, n as createSlotValueFromString, e as renderComponent, r as renderTemplate, D as DEFAULT_404_COMPONENT, o as renderSlotToString, p as renderJSX, q as chunkToString, t as isRenderInstruction, u as originPathnameSymbol, A as ASTRO_VERSION, v as clientLocalsSymbol, w as clientAddressSymbol, x as responseSentSymbol$1, z as renderPage, B as REWRITE_DIRECTIVE_HEADER_KEY, C as REWRITE_DIRECTIVE_HEADER_VALUE, E as renderEndpoint, F as REROUTABLE_STATUS_CODES, G as getDefaultExportFromCjs } from './astro/server_dQA6Nnp7.mjs';
 import { q as appendForwardSlash$1, s as joinPaths, A as AstroError, t as i18nNoLocaleFoundInPath, R as ResponseSentError, u as MiddlewareNoDataOrNextCalled, v as MiddlewareNotAResponse, G as GetStaticPathsRequired, w as InvalidGetStaticPathsReturn, x as InvalidGetStaticPathsEntry, y as GetStaticPathsExpectedParams, z as GetStaticPathsInvalidRouteParam, B as trimSlashes, P as PageNumberParamNotFound, C as NoMatchingStaticPathFound, H as PrerenderDynamicEndpointPathCollide, J as ReservedSlotName, K as removeTrailingForwardSlash, L as RewriteWithBodyUsed, Q as LocalsNotAnObject, S as PrerenderClientAddressNotAvailable, T as ClientAddressNotAvailable, U as StaticClientAddressNotAvailable, V as AstroResponseHeadersReassigned, W as fileExtension, X as slash, Y as prependForwardSlash$1 } from './astro/assets-service_DpLAZY03.mjs';
-import { serialize, parse } from 'cookie';
-import { g as getActionQueryString, d as deserializeActionResult, e as ensure404Route, D as DEFAULT_404_ROUTE, a as default404Instance, N as NOOP_MIDDLEWARE_FN } from './astro-designed-error-pages_43w5MGAS.mjs';
-import 'clsx';
+import { g as getActionQueryString, d as deserializeActionResult, e as ensure404Route, D as DEFAULT_404_ROUTE, a as default404Instance, N as NOOP_MIDDLEWARE_FN } from './astro-designed-error-pages_BE5gyv0-.mjs';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import fs$2 from 'node:fs';
 import http from 'node:http';
@@ -12,17 +10,14 @@ import os from 'node:os';
 import path$2 from 'node:path';
 import url from 'node:url';
 import path$1 from 'path';
-import require$$3 from 'inherits';
-import require$$1$1 from 'debug';
-import require$$0$1 from 'events';
-import require$$1 from 'fs';
+import require$$0$1 from 'tty';
+import require$$1 from 'util';
+import require$$1$1 from 'fs';
+import require$$4 from 'net';
+import require$$0$2 from 'events';
 import require$$2$1 from 'stream';
-import require$$3$1 from 'zlib';
-import require$$5 from 'escape-html';
+import require$$3 from 'zlib';
 import crypto$2 from 'crypto';
-import require$$10 from 'ms';
-import require$$12 from 'range-parser';
-import require$$16 from 'util';
 import buffer from 'node:buffer';
 import crypto$1 from 'node:crypto';
 
@@ -297,6 +292,340 @@ function redirectToFallback({
   };
 }
 
+/*!
+ * cookie
+ * Copyright(c) 2012-2014 Roman Shtylman
+ * Copyright(c) 2015 Douglas Christopher Wilson
+ * MIT Licensed
+ */
+
+/**
+ * Module exports.
+ * @public
+ */
+
+var parse_1 = parse$1;
+var serialize_1 = serialize;
+
+/**
+ * Module variables.
+ * @private
+ */
+
+var __toString = Object.prototype.toString;
+var __hasOwnProperty = Object.prototype.hasOwnProperty;
+
+/**
+ * RegExp to match cookie-name in RFC 6265 sec 4.1.1
+ * This refers out to the obsoleted definition of token in RFC 2616 sec 2.2
+ * which has been replaced by the token definition in RFC 7230 appendix B.
+ *
+ * cookie-name       = token
+ * token             = 1*tchar
+ * tchar             = "!" / "#" / "$" / "%" / "&" / "'" /
+ *                     "*" / "+" / "-" / "." / "^" / "_" /
+ *                     "`" / "|" / "~" / DIGIT / ALPHA
+ */
+
+var cookieNameRegExp = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
+
+/**
+ * RegExp to match cookie-value in RFC 6265 sec 4.1.1
+ *
+ * cookie-value      = *cookie-octet / ( DQUOTE *cookie-octet DQUOTE )
+ * cookie-octet      = %x21 / %x23-2B / %x2D-3A / %x3C-5B / %x5D-7E
+ *                     ; US-ASCII characters excluding CTLs,
+ *                     ; whitespace DQUOTE, comma, semicolon,
+ *                     ; and backslash
+ */
+
+var cookieValueRegExp = /^("?)[\u0021\u0023-\u002B\u002D-\u003A\u003C-\u005B\u005D-\u007E]*\1$/;
+
+/**
+ * RegExp to match domain-value in RFC 6265 sec 4.1.1
+ *
+ * domain-value      = <subdomain>
+ *                     ; defined in [RFC1034], Section 3.5, as
+ *                     ; enhanced by [RFC1123], Section 2.1
+ * <subdomain>       = <label> | <subdomain> "." <label>
+ * <label>           = <let-dig> [ [ <ldh-str> ] <let-dig> ]
+ *                     Labels must be 63 characters or less.
+ *                     'let-dig' not 'letter' in the first char, per RFC1123
+ * <ldh-str>         = <let-dig-hyp> | <let-dig-hyp> <ldh-str>
+ * <let-dig-hyp>     = <let-dig> | "-"
+ * <let-dig>         = <letter> | <digit>
+ * <letter>          = any one of the 52 alphabetic characters A through Z in
+ *                     upper case and a through z in lower case
+ * <digit>           = any one of the ten digits 0 through 9
+ *
+ * Keep support for leading dot: https://github.com/jshttp/cookie/issues/173
+ *
+ * > (Note that a leading %x2E ("."), if present, is ignored even though that
+ * character is not permitted, but a trailing %x2E ("."), if present, will
+ * cause the user agent to ignore the attribute.)
+ */
+
+var domainValueRegExp = /^([.]?[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)([.][a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$/i;
+
+/**
+ * RegExp to match path-value in RFC 6265 sec 4.1.1
+ *
+ * path-value        = <any CHAR except CTLs or ";">
+ * CHAR              = %x01-7F
+ *                     ; defined in RFC 5234 appendix B.1
+ */
+
+var pathValueRegExp = /^[\u0020-\u003A\u003D-\u007E]*$/;
+
+/**
+ * Parse a cookie header.
+ *
+ * Parse the given cookie header string into an object
+ * The object has the various cookies as keys(names) => values
+ *
+ * @param {string} str
+ * @param {object} [opt]
+ * @return {object}
+ * @public
+ */
+
+function parse$1(str, opt) {
+  if (typeof str !== 'string') {
+    throw new TypeError('argument str must be a string');
+  }
+
+  var obj = {};
+  var len = str.length;
+  // RFC 6265 sec 4.1.1, RFC 2616 2.2 defines a cookie name consists of one char minimum, plus '='.
+  if (len < 2) return obj;
+
+  var dec = (opt && opt.decode) || decode$1;
+  var index = 0;
+  var eqIdx = 0;
+  var endIdx = 0;
+
+  do {
+    eqIdx = str.indexOf('=', index);
+    if (eqIdx === -1) break; // No more cookie pairs.
+
+    endIdx = str.indexOf(';', index);
+
+    if (endIdx === -1) {
+      endIdx = len;
+    } else if (eqIdx > endIdx) {
+      // backtrack on prior semicolon
+      index = str.lastIndexOf(';', eqIdx - 1) + 1;
+      continue;
+    }
+
+    var keyStartIdx = startIndex(str, index, eqIdx);
+    var keyEndIdx = endIndex(str, eqIdx, keyStartIdx);
+    var key = str.slice(keyStartIdx, keyEndIdx);
+
+    // only assign once
+    if (!__hasOwnProperty.call(obj, key)) {
+      var valStartIdx = startIndex(str, eqIdx + 1, endIdx);
+      var valEndIdx = endIndex(str, endIdx, valStartIdx);
+
+      if (str.charCodeAt(valStartIdx) === 0x22 /* " */ && str.charCodeAt(valEndIdx - 1) === 0x22 /* " */) {
+        valStartIdx++;
+        valEndIdx--;
+      }
+
+      var val = str.slice(valStartIdx, valEndIdx);
+      obj[key] = tryDecode(val, dec);
+    }
+
+    index = endIdx + 1;
+  } while (index < len);
+
+  return obj;
+}
+
+function startIndex(str, index, max) {
+  do {
+    var code = str.charCodeAt(index);
+    if (code !== 0x20 /*   */ && code !== 0x09 /* \t */) return index;
+  } while (++index < max);
+  return max;
+}
+
+function endIndex(str, index, min) {
+  while (index > min) {
+    var code = str.charCodeAt(--index);
+    if (code !== 0x20 /*   */ && code !== 0x09 /* \t */) return index + 1;
+  }
+  return min;
+}
+
+/**
+ * Serialize data into a cookie header.
+ *
+ * Serialize a name value pair into a cookie string suitable for
+ * http headers. An optional options object specifies cookie parameters.
+ *
+ * serialize('foo', 'bar', { httpOnly: true })
+ *   => "foo=bar; httpOnly"
+ *
+ * @param {string} name
+ * @param {string} val
+ * @param {object} [opt]
+ * @return {string}
+ * @public
+ */
+
+function serialize(name, val, opt) {
+  var enc = (opt && opt.encode) || encodeURIComponent;
+
+  if (typeof enc !== 'function') {
+    throw new TypeError('option encode is invalid');
+  }
+
+  if (!cookieNameRegExp.test(name)) {
+    throw new TypeError('argument name is invalid');
+  }
+
+  var value = enc(val);
+
+  if (!cookieValueRegExp.test(value)) {
+    throw new TypeError('argument val is invalid');
+  }
+
+  var str = name + '=' + value;
+  if (!opt) return str;
+
+  if (null != opt.maxAge) {
+    var maxAge = Math.floor(opt.maxAge);
+
+    if (!isFinite(maxAge)) {
+      throw new TypeError('option maxAge is invalid')
+    }
+
+    str += '; Max-Age=' + maxAge;
+  }
+
+  if (opt.domain) {
+    if (!domainValueRegExp.test(opt.domain)) {
+      throw new TypeError('option domain is invalid');
+    }
+
+    str += '; Domain=' + opt.domain;
+  }
+
+  if (opt.path) {
+    if (!pathValueRegExp.test(opt.path)) {
+      throw new TypeError('option path is invalid');
+    }
+
+    str += '; Path=' + opt.path;
+  }
+
+  if (opt.expires) {
+    var expires = opt.expires;
+
+    if (!isDate(expires) || isNaN(expires.valueOf())) {
+      throw new TypeError('option expires is invalid');
+    }
+
+    str += '; Expires=' + expires.toUTCString();
+  }
+
+  if (opt.httpOnly) {
+    str += '; HttpOnly';
+  }
+
+  if (opt.secure) {
+    str += '; Secure';
+  }
+
+  if (opt.partitioned) {
+    str += '; Partitioned';
+  }
+
+  if (opt.priority) {
+    var priority = typeof opt.priority === 'string'
+      ? opt.priority.toLowerCase() : opt.priority;
+
+    switch (priority) {
+      case 'low':
+        str += '; Priority=Low';
+        break
+      case 'medium':
+        str += '; Priority=Medium';
+        break
+      case 'high':
+        str += '; Priority=High';
+        break
+      default:
+        throw new TypeError('option priority is invalid')
+    }
+  }
+
+  if (opt.sameSite) {
+    var sameSite = typeof opt.sameSite === 'string'
+      ? opt.sameSite.toLowerCase() : opt.sameSite;
+
+    switch (sameSite) {
+      case true:
+        str += '; SameSite=Strict';
+        break;
+      case 'lax':
+        str += '; SameSite=Lax';
+        break;
+      case 'strict':
+        str += '; SameSite=Strict';
+        break;
+      case 'none':
+        str += '; SameSite=None';
+        break;
+      default:
+        throw new TypeError('option sameSite is invalid');
+    }
+  }
+
+  return str;
+}
+
+/**
+ * URL-decode string value. Optimized to skip native call when no %.
+ *
+ * @param {string} str
+ * @returns {string}
+ */
+
+function decode$1 (str) {
+  return str.indexOf('%') !== -1
+    ? decodeURIComponent(str)
+    : str
+}
+
+/**
+ * Determine if value is a Date.
+ *
+ * @param {*} val
+ * @private
+ */
+
+function isDate (val) {
+  return __toString.call(val) === '[object Date]';
+}
+
+/**
+ * Try decoding a string using a decoding function.
+ *
+ * @param {string} str
+ * @param {function} decode
+ * @private
+ */
+
+function tryDecode(str, decode) {
+  try {
+    return decode(str);
+  } catch (e) {
+    return str;
+  }
+}
+
 const DELETED_EXPIRATION = /* @__PURE__ */ new Date(0);
 const DELETED_VALUE = "deleted";
 const responseSentSymbol = Symbol.for("astro.responseSent");
@@ -350,7 +679,7 @@ class AstroCookies {
     };
     this.#ensureOutgoingMap().set(key, [
       DELETED_VALUE,
-      serialize(key, DELETED_VALUE, serializeOptions),
+      serialize_1(key, DELETED_VALUE, serializeOptions),
       false
     ]);
   }
@@ -424,7 +753,7 @@ class AstroCookies {
     }
     this.#ensureOutgoingMap().set(key, [
       serializedValue,
-      serialize(key, serializedValue, serializeOptions),
+      serialize_1(key, serializedValue, serializeOptions),
       true
     ]);
     if (this.#request[responseSentSymbol]) {
@@ -485,7 +814,7 @@ class AstroCookies {
     if (!raw) {
       return;
     }
-    this.#requestValues = parse(raw, options);
+    this.#requestValues = parse_1(raw, options);
   }
 }
 
@@ -551,7 +880,7 @@ function warn(opts, label, message, newLine = true) {
 function error(opts, label, message, newLine = true) {
   return log$1(opts, "error", label, message, newLine);
 }
-function debug$1(...args) {
+function debug$2(...args) {
   if ("_astroGlobalDebug" in globalThis) {
     globalThis._astroGlobalDebug(...args);
   }
@@ -594,7 +923,7 @@ class Logger {
     error(this.options, label, message, newLine);
   }
   debug(label, ...messages) {
-    debug$1(label, ...messages);
+    debug$2(label, ...messages);
   }
   level() {
     return this.options.level;
@@ -626,7 +955,7 @@ class AstroIntegrationLogger {
     error(this.options, this.label, message);
   }
   debug(message) {
-    debug$1(this.label, message);
+    debug$2(this.label, message);
   }
 }
 
@@ -3650,6 +3979,57 @@ function status (code) {
   return getStatusCode(code)
 }
 
+var inherits = {exports: {}};
+
+var inherits_browser = {exports: {}};
+
+var hasRequiredInherits_browser;
+
+function requireInherits_browser () {
+	if (hasRequiredInherits_browser) return inherits_browser.exports;
+	hasRequiredInherits_browser = 1;
+	if (typeof Object.create === 'function') {
+	  // implementation from standard node.js 'util' module
+	  inherits_browser.exports = function inherits(ctor, superCtor) {
+	    if (superCtor) {
+	      ctor.super_ = superCtor;
+	      ctor.prototype = Object.create(superCtor.prototype, {
+	        constructor: {
+	          value: ctor,
+	          enumerable: false,
+	          writable: true,
+	          configurable: true
+	        }
+	      });
+	    }
+	  };
+	} else {
+	  // old school shim for old browsers
+	  inherits_browser.exports = function inherits(ctor, superCtor) {
+	    if (superCtor) {
+	      ctor.super_ = superCtor;
+	      var TempCtor = function () {};
+	      TempCtor.prototype = superCtor.prototype;
+	      ctor.prototype = new TempCtor();
+	      ctor.prototype.constructor = ctor;
+	    }
+	  };
+	}
+	return inherits_browser.exports;
+}
+
+try {
+  var util$1 = require('util');
+  /* istanbul ignore next */
+  if (typeof util$1.inherits !== 'function') throw '';
+  inherits.exports = util$1.inherits;
+} catch (e) {
+  /* istanbul ignore next */
+  inherits.exports = requireInherits_browser();
+}
+
+var inheritsExports = inherits.exports;
+
 /*!
  * toidentifier
  * Copyright(c) 2016 Douglas Christopher Wilson
@@ -3698,7 +4078,7 @@ function toIdentifier (str) {
 	var deprecate = depd_1('http-errors');
 	var setPrototypeOf = setprototypeof;
 	var statuses = statuses$1;
-	var inherits = require$$3;
+	var inherits = inheritsExports;
 	var toIdentifier = toidentifier;
 
 	/**
@@ -3974,6 +4354,852 @@ function toIdentifier (str) {
 
 var httpErrorsExports = httpErrors.exports;
 
+var src = {exports: {}};
+
+var browser = {exports: {}};
+
+var debug$1 = {exports: {}};
+
+/**
+ * Helpers.
+ */
+
+var ms$2;
+var hasRequiredMs;
+
+function requireMs () {
+	if (hasRequiredMs) return ms$2;
+	hasRequiredMs = 1;
+	var s = 1000;
+	var m = s * 60;
+	var h = m * 60;
+	var d = h * 24;
+	var y = d * 365.25;
+
+	/**
+	 * Parse or format the given `val`.
+	 *
+	 * Options:
+	 *
+	 *  - `long` verbose formatting [false]
+	 *
+	 * @param {String|Number} val
+	 * @param {Object} [options]
+	 * @throws {Error} throw an error if val is not a non-empty string or a number
+	 * @return {String|Number}
+	 * @api public
+	 */
+
+	ms$2 = function(val, options) {
+	  options = options || {};
+	  var type = typeof val;
+	  if (type === 'string' && val.length > 0) {
+	    return parse(val);
+	  } else if (type === 'number' && isNaN(val) === false) {
+	    return options.long ? fmtLong(val) : fmtShort(val);
+	  }
+	  throw new Error(
+	    'val is not a non-empty string or a valid number. val=' +
+	      JSON.stringify(val)
+	  );
+	};
+
+	/**
+	 * Parse the given `str` and return milliseconds.
+	 *
+	 * @param {String} str
+	 * @return {Number}
+	 * @api private
+	 */
+
+	function parse(str) {
+	  str = String(str);
+	  if (str.length > 100) {
+	    return;
+	  }
+	  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(
+	    str
+	  );
+	  if (!match) {
+	    return;
+	  }
+	  var n = parseFloat(match[1]);
+	  var type = (match[2] || 'ms').toLowerCase();
+	  switch (type) {
+	    case 'years':
+	    case 'year':
+	    case 'yrs':
+	    case 'yr':
+	    case 'y':
+	      return n * y;
+	    case 'days':
+	    case 'day':
+	    case 'd':
+	      return n * d;
+	    case 'hours':
+	    case 'hour':
+	    case 'hrs':
+	    case 'hr':
+	    case 'h':
+	      return n * h;
+	    case 'minutes':
+	    case 'minute':
+	    case 'mins':
+	    case 'min':
+	    case 'm':
+	      return n * m;
+	    case 'seconds':
+	    case 'second':
+	    case 'secs':
+	    case 'sec':
+	    case 's':
+	      return n * s;
+	    case 'milliseconds':
+	    case 'millisecond':
+	    case 'msecs':
+	    case 'msec':
+	    case 'ms':
+	      return n;
+	    default:
+	      return undefined;
+	  }
+	}
+
+	/**
+	 * Short format for `ms`.
+	 *
+	 * @param {Number} ms
+	 * @return {String}
+	 * @api private
+	 */
+
+	function fmtShort(ms) {
+	  if (ms >= d) {
+	    return Math.round(ms / d) + 'd';
+	  }
+	  if (ms >= h) {
+	    return Math.round(ms / h) + 'h';
+	  }
+	  if (ms >= m) {
+	    return Math.round(ms / m) + 'm';
+	  }
+	  if (ms >= s) {
+	    return Math.round(ms / s) + 's';
+	  }
+	  return ms + 'ms';
+	}
+
+	/**
+	 * Long format for `ms`.
+	 *
+	 * @param {Number} ms
+	 * @return {String}
+	 * @api private
+	 */
+
+	function fmtLong(ms) {
+	  return plural(ms, d, 'day') ||
+	    plural(ms, h, 'hour') ||
+	    plural(ms, m, 'minute') ||
+	    plural(ms, s, 'second') ||
+	    ms + ' ms';
+	}
+
+	/**
+	 * Pluralization helper.
+	 */
+
+	function plural(ms, n, name) {
+	  if (ms < n) {
+	    return;
+	  }
+	  if (ms < n * 1.5) {
+	    return Math.floor(ms / n) + ' ' + name;
+	  }
+	  return Math.ceil(ms / n) + ' ' + name + 's';
+	}
+	return ms$2;
+}
+
+var hasRequiredDebug;
+
+function requireDebug () {
+	if (hasRequiredDebug) return debug$1.exports;
+	hasRequiredDebug = 1;
+	(function (module, exports) {
+		/**
+		 * This is the common logic for both the Node.js and web browser
+		 * implementations of `debug()`.
+		 *
+		 * Expose `debug()` as the module.
+		 */
+
+		exports = module.exports = createDebug.debug = createDebug['default'] = createDebug;
+		exports.coerce = coerce;
+		exports.disable = disable;
+		exports.enable = enable;
+		exports.enabled = enabled;
+		exports.humanize = requireMs();
+
+		/**
+		 * The currently active debug mode names, and names to skip.
+		 */
+
+		exports.names = [];
+		exports.skips = [];
+
+		/**
+		 * Map of special "%n" handling functions, for the debug "format" argument.
+		 *
+		 * Valid key names are a single, lower or upper-case letter, i.e. "n" and "N".
+		 */
+
+		exports.formatters = {};
+
+		/**
+		 * Previous log timestamp.
+		 */
+
+		var prevTime;
+
+		/**
+		 * Select a color.
+		 * @param {String} namespace
+		 * @return {Number}
+		 * @api private
+		 */
+
+		function selectColor(namespace) {
+		  var hash = 0, i;
+
+		  for (i in namespace) {
+		    hash  = ((hash << 5) - hash) + namespace.charCodeAt(i);
+		    hash |= 0; // Convert to 32bit integer
+		  }
+
+		  return exports.colors[Math.abs(hash) % exports.colors.length];
+		}
+
+		/**
+		 * Create a debugger with the given `namespace`.
+		 *
+		 * @param {String} namespace
+		 * @return {Function}
+		 * @api public
+		 */
+
+		function createDebug(namespace) {
+
+		  function debug() {
+		    // disabled?
+		    if (!debug.enabled) return;
+
+		    var self = debug;
+
+		    // set `diff` timestamp
+		    var curr = +new Date();
+		    var ms = curr - (prevTime || curr);
+		    self.diff = ms;
+		    self.prev = prevTime;
+		    self.curr = curr;
+		    prevTime = curr;
+
+		    // turn the `arguments` into a proper Array
+		    var args = new Array(arguments.length);
+		    for (var i = 0; i < args.length; i++) {
+		      args[i] = arguments[i];
+		    }
+
+		    args[0] = exports.coerce(args[0]);
+
+		    if ('string' !== typeof args[0]) {
+		      // anything else let's inspect with %O
+		      args.unshift('%O');
+		    }
+
+		    // apply any `formatters` transformations
+		    var index = 0;
+		    args[0] = args[0].replace(/%([a-zA-Z%])/g, function(match, format) {
+		      // if we encounter an escaped % then don't increase the array index
+		      if (match === '%%') return match;
+		      index++;
+		      var formatter = exports.formatters[format];
+		      if ('function' === typeof formatter) {
+		        var val = args[index];
+		        match = formatter.call(self, val);
+
+		        // now we need to remove `args[index]` since it's inlined in the `format`
+		        args.splice(index, 1);
+		        index--;
+		      }
+		      return match;
+		    });
+
+		    // apply env-specific formatting (colors, etc.)
+		    exports.formatArgs.call(self, args);
+
+		    var logFn = debug.log || exports.log || console.log.bind(console);
+		    logFn.apply(self, args);
+		  }
+
+		  debug.namespace = namespace;
+		  debug.enabled = exports.enabled(namespace);
+		  debug.useColors = exports.useColors();
+		  debug.color = selectColor(namespace);
+
+		  // env-specific initialization logic for debug instances
+		  if ('function' === typeof exports.init) {
+		    exports.init(debug);
+		  }
+
+		  return debug;
+		}
+
+		/**
+		 * Enables a debug mode by namespaces. This can include modes
+		 * separated by a colon and wildcards.
+		 *
+		 * @param {String} namespaces
+		 * @api public
+		 */
+
+		function enable(namespaces) {
+		  exports.save(namespaces);
+
+		  exports.names = [];
+		  exports.skips = [];
+
+		  var split = (typeof namespaces === 'string' ? namespaces : '').split(/[\s,]+/);
+		  var len = split.length;
+
+		  for (var i = 0; i < len; i++) {
+		    if (!split[i]) continue; // ignore empty strings
+		    namespaces = split[i].replace(/\*/g, '.*?');
+		    if (namespaces[0] === '-') {
+		      exports.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
+		    } else {
+		      exports.names.push(new RegExp('^' + namespaces + '$'));
+		    }
+		  }
+		}
+
+		/**
+		 * Disable debug output.
+		 *
+		 * @api public
+		 */
+
+		function disable() {
+		  exports.enable('');
+		}
+
+		/**
+		 * Returns true if the given mode name is enabled, false otherwise.
+		 *
+		 * @param {String} name
+		 * @return {Boolean}
+		 * @api public
+		 */
+
+		function enabled(name) {
+		  var i, len;
+		  for (i = 0, len = exports.skips.length; i < len; i++) {
+		    if (exports.skips[i].test(name)) {
+		      return false;
+		    }
+		  }
+		  for (i = 0, len = exports.names.length; i < len; i++) {
+		    if (exports.names[i].test(name)) {
+		      return true;
+		    }
+		  }
+		  return false;
+		}
+
+		/**
+		 * Coerce `val`.
+		 *
+		 * @param {Mixed} val
+		 * @return {Mixed}
+		 * @api private
+		 */
+
+		function coerce(val) {
+		  if (val instanceof Error) return val.stack || val.message;
+		  return val;
+		} 
+	} (debug$1, debug$1.exports));
+	return debug$1.exports;
+}
+
+/**
+ * This is the web browser implementation of `debug()`.
+ *
+ * Expose `debug()` as the module.
+ */
+
+var hasRequiredBrowser;
+
+function requireBrowser () {
+	if (hasRequiredBrowser) return browser.exports;
+	hasRequiredBrowser = 1;
+	(function (module, exports) {
+		exports = module.exports = requireDebug();
+		exports.log = log;
+		exports.formatArgs = formatArgs;
+		exports.save = save;
+		exports.load = load;
+		exports.useColors = useColors;
+		exports.storage = 'undefined' != typeof chrome
+		               && 'undefined' != typeof chrome.storage
+		                  ? chrome.storage.local
+		                  : localstorage();
+
+		/**
+		 * Colors.
+		 */
+
+		exports.colors = [
+		  'lightseagreen',
+		  'forestgreen',
+		  'goldenrod',
+		  'dodgerblue',
+		  'darkorchid',
+		  'crimson'
+		];
+
+		/**
+		 * Currently only WebKit-based Web Inspectors, Firefox >= v31,
+		 * and the Firebug extension (any Firefox version) are known
+		 * to support "%c" CSS customizations.
+		 *
+		 * TODO: add a `localStorage` variable to explicitly enable/disable colors
+		 */
+
+		function useColors() {
+		  // NB: In an Electron preload script, document will be defined but not fully
+		  // initialized. Since we know we're in Chrome, we'll just detect this case
+		  // explicitly
+		  if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
+		    return true;
+		  }
+
+		  // is webkit? http://stackoverflow.com/a/16459606/376773
+		  // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
+		  return (typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance) ||
+		    // is firebug? http://stackoverflow.com/a/398120/376773
+		    (typeof window !== 'undefined' && window.console && (window.console.firebug || (window.console.exception && window.console.table))) ||
+		    // is firefox >= v31?
+		    // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
+		    (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
+		    // double check webkit in userAgent just in case we are in a worker
+		    (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
+		}
+
+		/**
+		 * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
+		 */
+
+		exports.formatters.j = function(v) {
+		  try {
+		    return JSON.stringify(v);
+		  } catch (err) {
+		    return '[UnexpectedJSONParseError]: ' + err.message;
+		  }
+		};
+
+
+		/**
+		 * Colorize log arguments if enabled.
+		 *
+		 * @api public
+		 */
+
+		function formatArgs(args) {
+		  var useColors = this.useColors;
+
+		  args[0] = (useColors ? '%c' : '')
+		    + this.namespace
+		    + (useColors ? ' %c' : ' ')
+		    + args[0]
+		    + (useColors ? '%c ' : ' ')
+		    + '+' + exports.humanize(this.diff);
+
+		  if (!useColors) return;
+
+		  var c = 'color: ' + this.color;
+		  args.splice(1, 0, c, 'color: inherit');
+
+		  // the final "%c" is somewhat tricky, because there could be other
+		  // arguments passed either before or after the %c, so we need to
+		  // figure out the correct index to insert the CSS into
+		  var index = 0;
+		  var lastC = 0;
+		  args[0].replace(/%[a-zA-Z%]/g, function(match) {
+		    if ('%%' === match) return;
+		    index++;
+		    if ('%c' === match) {
+		      // we only are interested in the *last* %c
+		      // (the user may have provided their own)
+		      lastC = index;
+		    }
+		  });
+
+		  args.splice(lastC, 0, c);
+		}
+
+		/**
+		 * Invokes `console.log()` when available.
+		 * No-op when `console.log` is not a "function".
+		 *
+		 * @api public
+		 */
+
+		function log() {
+		  // this hackery is required for IE8/9, where
+		  // the `console.log` function doesn't have 'apply'
+		  return 'object' === typeof console
+		    && console.log
+		    && Function.prototype.apply.call(console.log, console, arguments);
+		}
+
+		/**
+		 * Save `namespaces`.
+		 *
+		 * @param {String} namespaces
+		 * @api private
+		 */
+
+		function save(namespaces) {
+		  try {
+		    if (null == namespaces) {
+		      exports.storage.removeItem('debug');
+		    } else {
+		      exports.storage.debug = namespaces;
+		    }
+		  } catch(e) {}
+		}
+
+		/**
+		 * Load `namespaces`.
+		 *
+		 * @return {String} returns the previously persisted debug modes
+		 * @api private
+		 */
+
+		function load() {
+		  var r;
+		  try {
+		    r = exports.storage.debug;
+		  } catch(e) {}
+
+		  // If debug isn't set in LS, and we're in Electron, try to load $DEBUG
+		  if (!r && typeof process !== 'undefined' && 'env' in process) {
+		    r = process.env.DEBUG;
+		  }
+
+		  return r;
+		}
+
+		/**
+		 * Enable namespaces listed in `localStorage.debug` initially.
+		 */
+
+		exports.enable(load());
+
+		/**
+		 * Localstorage attempts to return the localstorage.
+		 *
+		 * This is necessary because safari throws
+		 * when a user disables cookies/localstorage
+		 * and you attempt to access it.
+		 *
+		 * @return {LocalStorage}
+		 * @api private
+		 */
+
+		function localstorage() {
+		  try {
+		    return window.localStorage;
+		  } catch (e) {}
+		} 
+	} (browser, browser.exports));
+	return browser.exports;
+}
+
+var node = {exports: {}};
+
+/**
+ * Module dependencies.
+ */
+
+var hasRequiredNode;
+
+function requireNode () {
+	if (hasRequiredNode) return node.exports;
+	hasRequiredNode = 1;
+	(function (module, exports) {
+		var tty = require$$0$1;
+		var util = require$$1;
+
+		/**
+		 * This is the Node.js implementation of `debug()`.
+		 *
+		 * Expose `debug()` as the module.
+		 */
+
+		exports = module.exports = requireDebug();
+		exports.init = init;
+		exports.log = log;
+		exports.formatArgs = formatArgs;
+		exports.save = save;
+		exports.load = load;
+		exports.useColors = useColors;
+
+		/**
+		 * Colors.
+		 */
+
+		exports.colors = [6, 2, 3, 4, 5, 1];
+
+		/**
+		 * Build up the default `inspectOpts` object from the environment variables.
+		 *
+		 *   $ DEBUG_COLORS=no DEBUG_DEPTH=10 DEBUG_SHOW_HIDDEN=enabled node script.js
+		 */
+
+		exports.inspectOpts = Object.keys(process.env).filter(function (key) {
+		  return /^debug_/i.test(key);
+		}).reduce(function (obj, key) {
+		  // camel-case
+		  var prop = key
+		    .substring(6)
+		    .toLowerCase()
+		    .replace(/_([a-z])/g, function (_, k) { return k.toUpperCase() });
+
+		  // coerce string value into JS value
+		  var val = process.env[key];
+		  if (/^(yes|on|true|enabled)$/i.test(val)) val = true;
+		  else if (/^(no|off|false|disabled)$/i.test(val)) val = false;
+		  else if (val === 'null') val = null;
+		  else val = Number(val);
+
+		  obj[prop] = val;
+		  return obj;
+		}, {});
+
+		/**
+		 * The file descriptor to write the `debug()` calls to.
+		 * Set the `DEBUG_FD` env variable to override with another value. i.e.:
+		 *
+		 *   $ DEBUG_FD=3 node script.js 3>debug.log
+		 */
+
+		var fd = parseInt(process.env.DEBUG_FD, 10) || 2;
+
+		if (1 !== fd && 2 !== fd) {
+		  util.deprecate(function(){}, 'except for stderr(2) and stdout(1), any other usage of DEBUG_FD is deprecated. Override debug.log if you want to use a different log function (https://git.io/debug_fd)')();
+		}
+
+		var stream = 1 === fd ? process.stdout :
+		             2 === fd ? process.stderr :
+		             createWritableStdioStream(fd);
+
+		/**
+		 * Is stdout a TTY? Colored output is enabled when `true`.
+		 */
+
+		function useColors() {
+		  return 'colors' in exports.inspectOpts
+		    ? Boolean(exports.inspectOpts.colors)
+		    : tty.isatty(fd);
+		}
+
+		/**
+		 * Map %o to `util.inspect()`, all on a single line.
+		 */
+
+		exports.formatters.o = function(v) {
+		  this.inspectOpts.colors = this.useColors;
+		  return util.inspect(v, this.inspectOpts)
+		    .split('\n').map(function(str) {
+		      return str.trim()
+		    }).join(' ');
+		};
+
+		/**
+		 * Map %o to `util.inspect()`, allowing multiple lines if needed.
+		 */
+
+		exports.formatters.O = function(v) {
+		  this.inspectOpts.colors = this.useColors;
+		  return util.inspect(v, this.inspectOpts);
+		};
+
+		/**
+		 * Adds ANSI color escape codes if enabled.
+		 *
+		 * @api public
+		 */
+
+		function formatArgs(args) {
+		  var name = this.namespace;
+		  var useColors = this.useColors;
+
+		  if (useColors) {
+		    var c = this.color;
+		    var prefix = '  \u001b[3' + c + ';1m' + name + ' ' + '\u001b[0m';
+
+		    args[0] = prefix + args[0].split('\n').join('\n' + prefix);
+		    args.push('\u001b[3' + c + 'm+' + exports.humanize(this.diff) + '\u001b[0m');
+		  } else {
+		    args[0] = new Date().toUTCString()
+		      + ' ' + name + ' ' + args[0];
+		  }
+		}
+
+		/**
+		 * Invokes `util.format()` with the specified arguments and writes to `stream`.
+		 */
+
+		function log() {
+		  return stream.write(util.format.apply(util, arguments) + '\n');
+		}
+
+		/**
+		 * Save `namespaces`.
+		 *
+		 * @param {String} namespaces
+		 * @api private
+		 */
+
+		function save(namespaces) {
+		  if (null == namespaces) {
+		    // If you set a process.env field to null or undefined, it gets cast to the
+		    // string 'null' or 'undefined'. Just delete instead.
+		    delete process.env.DEBUG;
+		  } else {
+		    process.env.DEBUG = namespaces;
+		  }
+		}
+
+		/**
+		 * Load `namespaces`.
+		 *
+		 * @return {String} returns the previously persisted debug modes
+		 * @api private
+		 */
+
+		function load() {
+		  return process.env.DEBUG;
+		}
+
+		/**
+		 * Copied from `node/src/node.js`.
+		 *
+		 * XXX: It's lame that node doesn't expose this API out-of-the-box. It also
+		 * relies on the undocumented `tty_wrap.guessHandleType()` which is also lame.
+		 */
+
+		function createWritableStdioStream (fd) {
+		  var stream;
+		  var tty_wrap = process.binding('tty_wrap');
+
+		  // Note stream._type is used for test-module-load-list.js
+
+		  switch (tty_wrap.guessHandleType(fd)) {
+		    case 'TTY':
+		      stream = new tty.WriteStream(fd);
+		      stream._type = 'tty';
+
+		      // Hack to have stream not keep the event loop alive.
+		      // See https://github.com/joyent/node/issues/1726
+		      if (stream._handle && stream._handle.unref) {
+		        stream._handle.unref();
+		      }
+		      break;
+
+		    case 'FILE':
+		      var fs = require$$1$1;
+		      stream = new fs.SyncWriteStream(fd, { autoClose: false });
+		      stream._type = 'fs';
+		      break;
+
+		    case 'PIPE':
+		    case 'TCP':
+		      var net = require$$4;
+		      stream = new net.Socket({
+		        fd: fd,
+		        readable: false,
+		        writable: true
+		      });
+
+		      // FIXME Should probably have an option in net.Socket to create a
+		      // stream from an existing fd which is writable only. But for now
+		      // we'll just add this hack and set the `readable` member to false.
+		      // Test: ./node test/fixtures/echo.js < /etc/passwd
+		      stream.readable = false;
+		      stream.read = null;
+		      stream._type = 'pipe';
+
+		      // FIXME Hack to have stream not keep the event loop alive.
+		      // See https://github.com/joyent/node/issues/1726
+		      if (stream._handle && stream._handle.unref) {
+		        stream._handle.unref();
+		      }
+		      break;
+
+		    default:
+		      // Probably an error on in uv_guess_handle()
+		      throw new Error('Implement me. Unknown stream file type!');
+		  }
+
+		  // For supporting legacy API we put the FD here.
+		  stream.fd = fd;
+
+		  stream._isStdio = true;
+
+		  return stream;
+		}
+
+		/**
+		 * Init logic for `debug` instances.
+		 *
+		 * Create a new `inspectOpts` object in case `useColors` is set
+		 * differently for a particular `debug` instance.
+		 */
+
+		function init (debug) {
+		  debug.inspectOpts = {};
+
+		  var keys = Object.keys(exports.inspectOpts);
+		  for (var i = 0; i < keys.length; i++) {
+		    debug.inspectOpts[keys[i]] = exports.inspectOpts[keys[i]];
+		  }
+		}
+
+		/**
+		 * Enable namespaces listed in `process.env.DEBUG` initially.
+		 */
+
+		exports.enable(load()); 
+	} (node, node.exports));
+	return node.exports;
+}
+
+/**
+ * Detect Electron renderer process, which is node, but we should
+ * treat as a browser.
+ */
+
+if (typeof process !== 'undefined' && process.type === 'renderer') {
+  src.exports = requireBrowser();
+} else {
+  src.exports = requireNode();
+}
+
+var srcExports = src.exports;
+
 /*!
  * destroy
  * Copyright(c) 2014 Jonathan Ong
@@ -3986,10 +5212,10 @@ var httpErrorsExports = httpErrors.exports;
  * @private
  */
 
-var EventEmitter = require$$0$1.EventEmitter;
-var ReadStream = require$$1.ReadStream;
+var EventEmitter = require$$0$2.EventEmitter;
+var ReadStream = require$$1$1.ReadStream;
 var Stream$1 = require$$2$1;
-var Zlib = require$$3$1;
+var Zlib = require$$3;
 
 /**
  * Module exports.
@@ -4242,6 +5468,83 @@ function encodeUrl$1 (url) {
 }
 
 /*!
+ * escape-html
+ * Copyright(c) 2012-2013 TJ Holowaychuk
+ * Copyright(c) 2015 Andreas Lubbe
+ * Copyright(c) 2015 Tiancheng "Timothy" Gu
+ * MIT Licensed
+ */
+
+/**
+ * Module variables.
+ * @private
+ */
+
+var matchHtmlRegExp = /["'&<>]/;
+
+/**
+ * Module exports.
+ * @public
+ */
+
+var escapeHtml_1 = escapeHtml$1;
+
+/**
+ * Escape special characters in the given string of html.
+ *
+ * @param  {string} string The string to escape for inserting into HTML
+ * @return {string}
+ * @public
+ */
+
+function escapeHtml$1(string) {
+  var str = '' + string;
+  var match = matchHtmlRegExp.exec(str);
+
+  if (!match) {
+    return str;
+  }
+
+  var escape;
+  var html = '';
+  var index = 0;
+  var lastIndex = 0;
+
+  for (index = match.index; index < str.length; index++) {
+    switch (str.charCodeAt(index)) {
+      case 34: // "
+        escape = '&quot;';
+        break;
+      case 38: // &
+        escape = '&amp;';
+        break;
+      case 39: // '
+        escape = '&#39;';
+        break;
+      case 60: // <
+        escape = '&lt;';
+        break;
+      case 62: // >
+        escape = '&gt;';
+        break;
+      default:
+        continue;
+    }
+
+    if (lastIndex !== index) {
+      html += str.substring(lastIndex, index);
+    }
+
+    lastIndex = index + 1;
+    html += escape;
+  }
+
+  return lastIndex !== index
+    ? html + str.substring(lastIndex, index)
+    : html;
+}
+
+/*!
  * etag
  * Copyright(c) 2014-2016 Douglas Christopher Wilson
  * MIT Licensed
@@ -4260,7 +5563,7 @@ var etag_1 = etag$1;
  */
 
 var crypto = crypto$2;
-var Stats = require$$1.Stats;
+var Stats = require$$1$1.Stats;
 
 /**
  * Module variables.
@@ -7267,7 +8570,7 @@ const require$$2 = {
 ]
 };
 
-var fs$1 = require$$1;
+var fs$1 = require$$1$1;
 
 function Mime() {
   // Map of extension -> mime type
@@ -7374,6 +8677,169 @@ mime$1.charsets = {
 };
 
 var mime_1 = mime$1;
+
+/**
+ * Helpers.
+ */
+
+var s = 1000;
+var m = s * 60;
+var h = m * 60;
+var d = h * 24;
+var w = d * 7;
+var y = d * 365.25;
+
+/**
+ * Parse or format the given `val`.
+ *
+ * Options:
+ *
+ *  - `long` verbose formatting [false]
+ *
+ * @param {String|Number} val
+ * @param {Object} [options]
+ * @throws {Error} throw an error if val is not a non-empty string or a number
+ * @return {String|Number}
+ * @api public
+ */
+
+var ms$1 = function (val, options) {
+  options = options || {};
+  var type = typeof val;
+  if (type === 'string' && val.length > 0) {
+    return parse(val);
+  } else if (type === 'number' && isFinite(val)) {
+    return options.long ? fmtLong(val) : fmtShort(val);
+  }
+  throw new Error(
+    'val is not a non-empty string or a valid number. val=' +
+      JSON.stringify(val)
+  );
+};
+
+/**
+ * Parse the given `str` and return milliseconds.
+ *
+ * @param {String} str
+ * @return {Number}
+ * @api private
+ */
+
+function parse(str) {
+  str = String(str);
+  if (str.length > 100) {
+    return;
+  }
+  var match = /^(-?(?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|years?|yrs?|y)?$/i.exec(
+    str
+  );
+  if (!match) {
+    return;
+  }
+  var n = parseFloat(match[1]);
+  var type = (match[2] || 'ms').toLowerCase();
+  switch (type) {
+    case 'years':
+    case 'year':
+    case 'yrs':
+    case 'yr':
+    case 'y':
+      return n * y;
+    case 'weeks':
+    case 'week':
+    case 'w':
+      return n * w;
+    case 'days':
+    case 'day':
+    case 'd':
+      return n * d;
+    case 'hours':
+    case 'hour':
+    case 'hrs':
+    case 'hr':
+    case 'h':
+      return n * h;
+    case 'minutes':
+    case 'minute':
+    case 'mins':
+    case 'min':
+    case 'm':
+      return n * m;
+    case 'seconds':
+    case 'second':
+    case 'secs':
+    case 'sec':
+    case 's':
+      return n * s;
+    case 'milliseconds':
+    case 'millisecond':
+    case 'msecs':
+    case 'msec':
+    case 'ms':
+      return n;
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * Short format for `ms`.
+ *
+ * @param {Number} ms
+ * @return {String}
+ * @api private
+ */
+
+function fmtShort(ms) {
+  var msAbs = Math.abs(ms);
+  if (msAbs >= d) {
+    return Math.round(ms / d) + 'd';
+  }
+  if (msAbs >= h) {
+    return Math.round(ms / h) + 'h';
+  }
+  if (msAbs >= m) {
+    return Math.round(ms / m) + 'm';
+  }
+  if (msAbs >= s) {
+    return Math.round(ms / s) + 's';
+  }
+  return ms + 'ms';
+}
+
+/**
+ * Long format for `ms`.
+ *
+ * @param {Number} ms
+ * @return {String}
+ * @api private
+ */
+
+function fmtLong(ms) {
+  var msAbs = Math.abs(ms);
+  if (msAbs >= d) {
+    return plural(ms, msAbs, d, 'day');
+  }
+  if (msAbs >= h) {
+    return plural(ms, msAbs, h, 'hour');
+  }
+  if (msAbs >= m) {
+    return plural(ms, msAbs, m, 'minute');
+  }
+  if (msAbs >= s) {
+    return plural(ms, msAbs, s, 'second');
+  }
+  return ms + ' ms';
+}
+
+/**
+ * Pluralization helper.
+ */
+
+function plural(ms, msAbs, n, name) {
+  var isPlural = msAbs >= n * 1.5;
+  return Math.round(ms / n) + ' ' + name + (isPlural ? 's' : '');
+}
 
 var onFinished$2 = {exports: {}};
 
@@ -7707,6 +9173,167 @@ function wrap (fn) {
 var onFinishedExports = onFinished$2.exports;
 
 /*!
+ * range-parser
+ * Copyright(c) 2012-2014 TJ Holowaychuk
+ * Copyright(c) 2015-2016 Douglas Christopher Wilson
+ * MIT Licensed
+ */
+
+/**
+ * Module exports.
+ * @public
+ */
+
+var rangeParser_1 = rangeParser;
+
+/**
+ * Parse "Range" header `str` relative to the given file `size`.
+ *
+ * @param {Number} size
+ * @param {String} str
+ * @param {Object} [options]
+ * @return {Array}
+ * @public
+ */
+
+function rangeParser (size, str, options) {
+  if (typeof str !== 'string') {
+    throw new TypeError('argument str must be a string')
+  }
+
+  var index = str.indexOf('=');
+
+  if (index === -1) {
+    return -2
+  }
+
+  // split the range string
+  var arr = str.slice(index + 1).split(',');
+  var ranges = [];
+
+  // add ranges type
+  ranges.type = str.slice(0, index);
+
+  // parse all ranges
+  for (var i = 0; i < arr.length; i++) {
+    var range = arr[i].split('-');
+    var start = parseInt(range[0], 10);
+    var end = parseInt(range[1], 10);
+
+    // -nnn
+    if (isNaN(start)) {
+      start = size - end;
+      end = size - 1;
+    // nnn-
+    } else if (isNaN(end)) {
+      end = size - 1;
+    }
+
+    // limit last-byte-pos to current length
+    if (end > size - 1) {
+      end = size - 1;
+    }
+
+    // invalid or unsatisifiable
+    if (isNaN(start) || isNaN(end) || start > end || start < 0) {
+      continue
+    }
+
+    // add range
+    ranges.push({
+      start: start,
+      end: end
+    });
+  }
+
+  if (ranges.length < 1) {
+    // unsatisifiable
+    return -1
+  }
+
+  return options && options.combine
+    ? combineRanges(ranges)
+    : ranges
+}
+
+/**
+ * Combine overlapping & adjacent ranges.
+ * @private
+ */
+
+function combineRanges (ranges) {
+  var ordered = ranges.map(mapWithIndex).sort(sortByRangeStart);
+
+  for (var j = 0, i = 1; i < ordered.length; i++) {
+    var range = ordered[i];
+    var current = ordered[j];
+
+    if (range.start > current.end + 1) {
+      // next range
+      ordered[++j] = range;
+    } else if (range.end > current.end) {
+      // extend range
+      current.end = range.end;
+      current.index = Math.min(current.index, range.index);
+    }
+  }
+
+  // trim ordered array
+  ordered.length = j + 1;
+
+  // generate combined range
+  var combined = ordered.sort(sortByRangeIndex).map(mapWithoutIndex);
+
+  // copy ranges type
+  combined.type = ranges.type;
+
+  return combined
+}
+
+/**
+ * Map function to add index value to ranges.
+ * @private
+ */
+
+function mapWithIndex (range, index) {
+  return {
+    start: range.start,
+    end: range.end,
+    index: index
+  }
+}
+
+/**
+ * Map function to remove index value from ranges.
+ * @private
+ */
+
+function mapWithoutIndex (range) {
+  return {
+    start: range.start,
+    end: range.end
+  }
+}
+
+/**
+ * Sort function to sort ranges by index.
+ * @private
+ */
+
+function sortByRangeIndex (a, b) {
+  return a.index - b.index
+}
+
+/**
+ * Sort function to sort ranges by start position.
+ * @private
+ */
+
+function sortByRangeStart (a, b) {
+  return a.start - b.start
+}
+
+/*!
  * send
  * Copyright(c) 2012 TJ Holowaychuk
  * Copyright(c) 2014-2022 Douglas Christopher Wilson
@@ -7719,22 +9346,22 @@ var onFinishedExports = onFinished$2.exports;
  */
 
 var createError = httpErrorsExports;
-var debug = require$$1$1('send');
+var debug = srcExports('send');
 var deprecate = depd_1('send');
 var destroy = destroy_1;
 var encodeUrl = encodeurl;
-var escapeHtml = require$$5;
+var escapeHtml = escapeHtml_1;
 var etag = etag_1;
 var fresh = fresh_1;
-var fs = require$$1;
+var fs = require$$1$1;
 var mime = mime_1;
-var ms = require$$10;
+var ms = ms$1;
 var onFinished = onFinishedExports;
-var parseRange = require$$12;
+var parseRange = rangeParser_1;
 var path = path$1;
 var statuses = statuses$1;
 var Stream = require$$2$1;
-var util = require$$16;
+var util = require$$1;
 
 /**
  * Path function references.

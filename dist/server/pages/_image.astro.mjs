@@ -2,8 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { A as AstroError, f as NoImageMetadata, F as FailedToFetchRemoteImageDimensions, g as ExpectedImageOptions, h as ExpectedImage, i as ExpectedNotESMImage, r as resolveSrc, j as isRemoteImage, k as isRemotePath, l as isESMImportedImage, m as isLocalService, D as DEFAULT_HASH_PROPS, n as InvalidImageService, o as ImageMissingAlt, p as isRemoteAllowed } from '../chunks/astro/assets-service_DpLAZY03.mjs';
-import { c as createComponent, a as createAstro, m as maybeRenderHead, b as addAttribute, s as spreadAttributes, r as renderTemplate } from '../chunks/astro/server_iz4PVnHV.mjs';
-import 'clsx';
+import { c as createComponent, a as createAstro, m as maybeRenderHead, b as addAttribute, s as spreadAttributes, r as renderTemplate } from '../chunks/astro/server_dQA6Nnp7.mjs';
 export { renderers } from '../renderers.mjs';
 
 function isImageMetadata(src) {
@@ -950,7 +949,7 @@ const $$Image = createComponent(async ($$result, $$props, $$slots) => {
     additionalAttributes.srcset = image.srcSet.attribute;
   }
   return renderTemplate`${maybeRenderHead()}<img${addAttribute(image.src, "src")}${spreadAttributes(additionalAttributes)}${spreadAttributes(image.attributes)}>`;
-}, "/home/cory-ubuntu/coding/payload-auth-demo/env-manager/node_modules/.pnpm/astro@4.16.18_@types+node@20.19.11_rollup@4.46.3_typescript@5.9.2/node_modules/astro/components/Image.astro", void 0);
+}, "/home/cory-ubuntu/coding/projects/env-manager/node_modules/.pnpm/astro@4.16.18_@types+node@20.19.11_rollup@4.46.3_typescript@5.9.2/node_modules/astro/components/Image.astro", void 0);
 
 const mimes = {
   "3g2": "video/3gpp2",
@@ -1457,7 +1456,7 @@ const $$Picture = createComponent(async ($$result, $$props, $$slots) => {
     const srcsetAttribute = props.densities || !props.densities && !props.widths ? `${image.src}${image.srcSet.values.length > 0 ? ", " + image.srcSet.attribute : ""}` : image.srcSet.attribute;
     return renderTemplate`<source${addAttribute(srcsetAttribute, "srcset")}${addAttribute(lookup(image.options.format ?? image.src) ?? `image/${image.options.format}`, "type")}${spreadAttributes(sourceAdditionalAttributes)}>`;
   })} <img${addAttribute(fallbackImage.src, "src")}${spreadAttributes(imgAdditionalAttributes)}${spreadAttributes(fallbackImage.attributes)}> </picture>`;
-}, "/home/cory-ubuntu/coding/payload-auth-demo/env-manager/node_modules/.pnpm/astro@4.16.18_@types+node@20.19.11_rollup@4.46.3_typescript@5.9.2/node_modules/astro/components/Picture.astro", void 0);
+}, "/home/cory-ubuntu/coding/projects/env-manager/node_modules/.pnpm/astro@4.16.18_@types+node@20.19.11_rollup@4.46.3_typescript@5.9.2/node_modules/astro/components/Picture.astro", void 0);
 
 const imageConfig = {"service":{"entrypoint":"astro/assets/services/sharp","config":{}},"domains":[],"remotePatterns":[],"endpoint":"astro/assets/endpoint/node"};
 					// This is used by the @astrojs/node integration to locate images.
@@ -1466,7 +1465,7 @@ const imageConfig = {"service":{"entrypoint":"astro/assets/services/sharp","conf
 					// in the Lambda bundle, which would bloat the bundle with images.
 					// To prevent this, we mark the URL construction as pure,
 					// so that it's tree-shaken away for all platforms that don't need it.
-					const outDir = /* #__PURE__ */ new URL("file:///home/cory-ubuntu/coding/payload-auth-demo/env-manager/dist/client/");
+					const outDir = /* #__PURE__ */ new URL("file:///home/cory-ubuntu/coding/projects/env-manager/dist/client/");
 					const assetsDir = /* #__PURE__ */ new URL("_astro", outDir);
 					const getImage = async (options) => await getImage$1(options, imageConfig);
 

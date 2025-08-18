@@ -20,13 +20,16 @@ export interface DatabaseVariable extends EnvVariable {
 export interface ProjectVariableConfig {
   name: string
   description?: string
+  type?: 'string' | 'number' | 'boolean' | 'url' | 'email' | 'json' | 'port' | 'path'
   required?: boolean
   sensitive?: boolean
   category?: string
   validation?: RegExp
   minLength?: number
   defaultValue?: string
+  default?: string  // Alias for defaultValue
   generateSecret?: boolean
+  generate?: 'uuid' | 'crypto' | 'password'  // Generation strategy
 }
 
 export interface ProjectRequirementGroup {

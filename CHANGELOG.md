@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2025-08-18
+
+### Added
+- `type` property to ProjectVariableConfig for variable type hints ('url', 'email', 'json', etc.)
+- `generate` property for automatic value generation strategies ('uuid', 'crypto', 'password')
+- `default` as an alias for `defaultValue` for better compatibility
+
+### Fixed
+- TypeScript interface compatibility with env.config.ts usage
+
 ## [1.0.1] - 2024-08-18
 
 ### Added
@@ -46,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Password-based authentication for access control
 - Secure export with password confirmation
 
-[Unreleased]: https://github.com/buildappolis/env-manager/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/buildappolis/env-manager/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/buildappolis/env-manager/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/buildappolis/env-manager/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/buildappolis/env-manager/releases/tag/v1.0.0

@@ -1,6 +1,6 @@
 import { renderers } from './renderers.mjs';
-import { c as createExports, s as serverEntrypointModule } from './chunks/_@astrojs-ssr-adapter_C-H8Fn9D.mjs';
-import { manifest } from './manifest_B6yErOAG.mjs';
+import { c as createExports, s as serverEntrypointModule } from './chunks/_@astrojs-ssr-adapter_y8PBfwF1.mjs';
+import { manifest } from './manifest_DiVU2LZ_.mjs';
 
 const _page0 = () => import('./pages/_image.astro.mjs');
 const _page1 = () => import('./pages/api/auth.astro.mjs');
@@ -34,8 +34,8 @@ const _manifest = Object.assign(manifest, {
 });
 const _args = {
     "mode": "standalone",
-    "client": "file:///home/cory-ubuntu/coding/payload-auth-demo/env-manager/dist/client/",
-    "server": "file:///home/cory-ubuntu/coding/payload-auth-demo/env-manager/dist/server/",
+    "client": "file:///home/cory-ubuntu/coding/projects/env-manager/dist/client/",
+    "server": "file:///home/cory-ubuntu/coding/projects/env-manager/dist/server/",
     "host": true,
     "port": 3001,
     "assets": "_astro"
