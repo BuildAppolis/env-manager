@@ -114,77 +114,74 @@ function getProjectForPath(projectPath) {
   return registry.projects[absolutePath]
 }
 
-function promptPassword(message) {
-  return new Promise((resolve) => {
-    // Check if we're in a TTY terminal
-    const isTTY = process.stdin.isTTY
-    
-    if (!isTTY) {
-      // Simple prompt for non-TTY environments
+async function promptPassword(message) {
+  // Check if stdin is a TTY
+  if (!process.stdin.isTTY) {
+    // For non-TTY environments, use standard readline
+    return new Promise((resolve) => {
       const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout
       })
-      
       rl.question(message, (answer) => {
         rl.close()
         resolve(answer)
       })
-      return
-    }
-    
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-      terminal: true
     })
-    
-    // Set up password masking
+  }
+  
+  // For TTY environments, properly hide the input
+  return new Promise((resolve) => {
     let password = ''
     process.stdout.write(message)
     
-    // Disable echo
+    // Save original settings
+    const wasRaw = process.stdin.isRaw
+    
+    // Set raw mode to capture characters one by one
     process.stdin.setRawMode(true)
     process.stdin.resume()
     process.stdin.setEncoding('utf8')
     
     const onData = (char) => {
-      char = char + ''
-      
+      // Handle special characters
       switch (char) {
+        case '\r':  // Enter
         case '\n':
-        case '\r':
-        case '\u0004':
-          // Enter key pressed
-          process.stdin.setRawMode(false)
-          process.stdin.pause()
+        case '\u0004':  // Ctrl+D
+          // Cleanup and return password
           process.stdin.removeListener('data', onData)
-          rl.close()
-          console.log() // New line after password
+          process.stdin.setRawMode(wasRaw)
+          process.stdin.pause()
+          process.stdout.write('\n')
           resolve(password)
           break
-        case '\u0003':
-          // Ctrl+C pressed
-          process.stdin.setRawMode(false)
-          process.stdin.pause()
+          
+        case '\u0003':  // Ctrl+C
+          // Exit on Ctrl+C
           process.stdin.removeListener('data', onData)
-          rl.close()
-          process.exit()
+          process.stdin.setRawMode(wasRaw)
+          process.stdin.pause()
+          process.stdout.write('\n')
+          process.exit(1)
           break
-        case '\u007f':
-        case '\b':
-          // Backspace pressed
+          
+        case '\u007f':  // Backspace (DEL)
+        case '\b':      // Backspace
+        case '\x08':    // Backspace
           if (password.length > 0) {
             password = password.slice(0, -1)
-            process.stdout.clearLine()
-            process.stdout.cursorTo(0)
-            process.stdout.write(message + '*'.repeat(password.length))
+            // Move cursor back, write space, move back again
+            process.stdout.write('\b \b')
           }
           break
+          
         default:
-          // Regular character
-          password += char
-          process.stdout.write('*')
+          // Normal character - add to password and show asterisk
+          if (char && char.charCodeAt(0) >= 32) {  // Printable characters only
+            password += char
+            process.stdout.write('*')
+          }
           break
       }
     }

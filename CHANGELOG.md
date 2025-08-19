@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.7] - 2025-08-19
+
+### Fixed
+- **CRITICAL: Fixed broken password input masking**
+  - Password prompt was showing alternating characters (h*e*l*l*o*1*2*3)
+  - Completely rewrote password input handling using proper raw mode
+  - Now correctly shows asterisks (*) for all typed characters
+  - Fixed password not being saved/validated correctly
+  - Properly handles backspace and special characters
+
 ## [1.4.6] - 2025-08-19
 
 ### Fixed
