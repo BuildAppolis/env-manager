@@ -62,9 +62,18 @@ export class ConfigMigrator {
     let config: any
     
     try {
-      // Load the config file
-      const configModule = await import(/* @vite-ignore */ configPath)
-      config = configModule.default || configModule
+      // Check if it's a TypeScript file
+      if (configPath.endsWith('.ts')) {
+        // Use jiti for TypeScript support
+        const { createJiti } = await import('jiti')
+        const jiti = createJiti(import.meta.url, { interopDefault: true })
+        const configModule = await jiti.import(configPath)
+        config = (configModule as any).default || configModule
+      } else {
+        // Load JavaScript file directly
+        const configModule = await import(/* @vite-ignore */ configPath)
+        config = configModule.default || configModule
+      }
     } catch (error) {
       console.error('Failed to load config:', error)
       throw error

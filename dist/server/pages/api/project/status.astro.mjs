@@ -217,11 +217,18 @@ class ConfigMigrator {
   async migrateConfig(configPath) {
     let config;
     try {
-      const configModule = await import(
-        /* @vite-ignore */
-        configPath
-      );
-      config = configModule.default || configModule;
+      if (configPath.endsWith(".ts")) {
+        const { createJiti } = await import('jiti');
+        const jiti = createJiti(import.meta.url, { interopDefault: true });
+        const configModule = await jiti.import(configPath);
+        config = configModule.default || configModule;
+      } else {
+        const configModule = await import(
+          /* @vite-ignore */
+          configPath
+        );
+        config = configModule.default || configModule;
+      }
     } catch (error) {
       console.error("Failed to load config:", error);
       throw error;

@@ -1,6 +1,6 @@
 {
   "name": "@buildappolis/env-manager",
-  "version": "1.4.5",
+  "version": "1.4.6",
   "description": "Enterprise-grade environment variable management system with encryption, snapshots, and validation",
   "main": "index.ts",
   "types": "index.ts",
@@ -62,6 +62,7 @@
     "clsx": "^2.1.1",
     "commander": "^11.1.0",
     "framer-motion": "^12.23.12",
+    "jiti": "^2.5.1",
     "lucide-react": "^0.540.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

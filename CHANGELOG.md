@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.6] - 2025-08-19
+
+### Fixed
+- **Added TypeScript config file support**
+  - Added jiti dependency for loading `.ts` config files
+  - Fixed "Unknown file extension" error when using env.config.ts
+  - Config files now work with both TypeScript and JavaScript
+- Resolved config validation issues in projects using TypeScript
+
 ## [1.4.5] - 2025-08-19
 
 ### Fixed
