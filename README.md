@@ -29,6 +29,20 @@ BuildAppolis Env-Manager is a powerful, secure environment variable management s
 - 🏢 **Multi-Project** - Support for multiple project configurations
 - 🚀 **Framework Support** - Works with Next.js, Astro, Vue, Nuxt, SvelteKit, and more
 
+## 📝 Latest Updates
+
+### v1.4.11 (2025-08-19)
+- **Import/Export System**: Complete environment variable import/export with multiple formats (.env, .env.local, etc.)
+- **Port Management**: Global port configuration with CLI commands for easy port switching
+- **Dev Tools**: Package swapping utilities for seamless development/testing workflow
+- **Multi-Project Fixes**: Critical validation fixes for multi-project support
+- **Enhanced APIs**: Improved variables API with better branch detection and validation
+
+### v1.4.10 (2025-08-19)
+- **Critical Fix**: Resolved required variables validation for multi-project environments
+- **Improved Validation**: Fixed branch detection and type guards for validation functions
+- **Real-time Updates**: Required variables now update correctly when adding/deleting
+
 ## 📄 License
 
 This software is licensed under the BuildAppolis License. Key points:

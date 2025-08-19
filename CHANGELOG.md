@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.12] - 2025-08-19
+
+### Fixed
+- **Dynamic Port Configuration**: Fixed hardcoded port issue in astro.config.mjs
+  - Now reads port from ~/.env-manager/config.json dynamically
+  - Supports ENV_MANAGER_PORT environment variable override
+  - Falls back to default port 3001 only if config cannot be read
+  - Ensures the server uses the port configured via `env-manager port set` command
+
+## [1.4.11] - 2025-08-19
+
+### Added
+- **Complete Import/Export System**
+  - New ImportExportDialog component with full UI for import/export operations
+  - Support for multiple export formats (.env, .env.local, .env.development, .env.production, .env.staging, custom)
+  - Download as file or copy to clipboard functionality
+  - Intelligent .env file parsing with variable extraction, comment processing, and category detection
+  - Auto-detection of sensitive variables (SECRET, KEY, PASSWORD, TOKEN patterns)
+  - Visual preview before import with color-coded indicators
+  - Batch import with real-time success/error tracking
+
+- **Global Port Management System**
+  - New CLI commands: `env-manager port status`, `env-manager port set <port>`, `env-manager port restart`
+  - Global port configuration stored in ~/.env-manager/config.json
+  - Automatic project configuration updates across all env.config.ts files
+  - Smart process management with existing instance detection and termination
+  - Port conflict detection with --force override option
+  - WebSocket port management (separate HTTP + WS ports)
+
+- **Development Package Swapper Tools**
+  - swap-env-manager.sh script for easy switching between npm and local versions
+  - env-swap-aliases.sh with quick command aliases (env-local, env-prod, env-status, env-test)
+  - Automatic package.json updates and clean package removal/installation
+  - Support for multiple projects with path configuration
+  - Color-coded status output and comprehensive documentation
+
+### Changed
+- Enhanced variables API with PUT method supporting projectPath parameter
+- Improved branch detection when projectPath is provided
+- Added Import/Export button integration to EnvManager8Bit UI
+
+### Fixed
+- PUT method authentication handling in variables API
+- Process detection to avoid self-termination in port management
+- Proper error handling for import failures
+- Branch detection with projectPath parameter
+
 ## [1.4.10] - 2025-08-19
 
 ### Fixed
@@ -320,7 +367,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Password-based authentication for access control
 - Secure export with password confirmation
 
-[Unreleased]: https://github.com/buildappolis/env-manager/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/buildappolis/env-manager/compare/v1.4.12...HEAD
+[1.4.12]: https://github.com/buildappolis/env-manager/compare/v1.4.11...v1.4.12
+[1.4.11]: https://github.com/buildappolis/env-manager/compare/v1.4.10...v1.4.11
 [1.3.0]: https://github.com/buildappolis/env-manager/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/buildappolis/env-manager/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/buildappolis/env-manager/compare/v1.0.5...v1.1.0
