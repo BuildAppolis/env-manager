@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.9] - 2025-08-19
+
+### Fixed
+- **Fixed login endpoint URL**
+  - Changed from `/api/auth/login` to `/api/auth` (correct endpoint)
+  - Added proper form wrapper for password field
+  - Added autocomplete attribute for better browser support
+  - Fixed "Password field is not contained in a form" warning
+
 ## [1.4.8] - 2025-08-19
 
 ### Fixed

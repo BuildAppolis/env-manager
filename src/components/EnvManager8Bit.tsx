@@ -53,7 +53,7 @@ export default function EnvManager8Bit() {
     setIsLoading(true)
     setError('')
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })
@@ -174,7 +174,7 @@ export default function EnvManager8Bit() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-xs">PASSWORD</Label>
                 <Input
@@ -182,9 +182,9 @@ export default function EnvManager8Bit() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
                   placeholder="••••••••"
                   className="font-mono"
+                  autoComplete="current-password"
                 />
               </div>
               {error && (
@@ -193,7 +193,7 @@ export default function EnvManager8Bit() {
                 </div>
               )}
               <Button 
-                onClick={handleLogin}
+                type="submit"
                 disabled={isLoading || !password}
                 className="w-full"
                 variant="default"
@@ -207,7 +207,7 @@ export default function EnvManager8Bit() {
                   </>
                 )}
               </Button>
-            </div>
+            </form>
           </CardContent>
         </Card>
       </div>

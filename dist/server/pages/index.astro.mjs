@@ -1101,7 +1101,7 @@ function EnvManager8Bit() {
     setIsLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password })
@@ -1190,7 +1190,10 @@ function EnvManager8Bit() {
         /* @__PURE__ */ jsx(CardTitle, { className: "text-2xl mb-2", children: "ENV MANAGER" }),
         /* @__PURE__ */ jsx(CardDescription, { className: "text-xs", children: "ENTER PASSWORD TO CONTINUE" })
       ] }),
-      /* @__PURE__ */ jsx(CardContent, { children: /* @__PURE__ */ jsxs("div", { className: "space-y-4", children: [
+      /* @__PURE__ */ jsx(CardContent, { children: /* @__PURE__ */ jsxs("form", { onSubmit: (e) => {
+        e.preventDefault();
+        handleLogin();
+      }, className: "space-y-4", children: [
         /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
           /* @__PURE__ */ jsx(Label, { htmlFor: "password", className: "text-xs", children: "PASSWORD" }),
           /* @__PURE__ */ jsx(
@@ -1200,9 +1203,9 @@ function EnvManager8Bit() {
               type: "password",
               value: password,
               onChange: (e) => setPassword(e.target.value),
-              onKeyPress: (e) => e.key === "Enter" && handleLogin(),
               placeholder: "••••••••",
-              className: "font-mono"
+              className: "font-mono",
+              autoComplete: "current-password"
             }
           )
         ] }),
@@ -1213,7 +1216,7 @@ function EnvManager8Bit() {
         /* @__PURE__ */ jsx(
           Button,
           {
-            onClick: handleLogin,
+            type: "submit",
             disabled: isLoading || !password,
             className: "w-full",
             variant: "default",
