@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.4] - 2025-08-19
+
+### Fixed
+- **Complete fix for all import path issues**
+  - Fixed all `@/lib/utils` imports to use relative paths
+  - Fixed all `@/components/ui` imports in 8bit components
+  - Corrected relative path depths for nested components
+  - Thoroughly tested build process with global installation
+- Resolved all Vite/Rollup module resolution errors
+- Ensured compatibility with global npm/pnpm installations
+
 ## [1.4.3] - 2025-08-19
 
 ### Fixed

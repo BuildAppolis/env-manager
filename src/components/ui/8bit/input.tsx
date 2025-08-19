@@ -1,8 +1,8 @@
 import { type VariantProps, cva } from "class-variance-authority";
 
-import { cn } from "@/lib/utils";
+import { cn } from "../../../lib/utils";
 
-import { Input as ShadcnInput } from "@/components/ui/input";
+import { Input as ShadcnInput } from "../input";
 
 import "./styles/retro.css";
 

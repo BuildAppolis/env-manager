@@ -1,7 +1,7 @@
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { type VariantProps, cva } from "class-variance-authority";
 
-import { cn } from "@/lib/utils";
+import { cn } from "../../../lib/utils";
 
 import {
   Select as ShadcnSelect,
@@ -14,7 +14,7 @@ import {
   SelectSeparator as ShadcnSelectSeparator,
   SelectTrigger as ShadcnSelectTrigger,
   SelectValue as ShadcnSelectValue,
-} from "@/components/ui/select";
+} from "../select";
 
 import "./styles/retro.css";
 

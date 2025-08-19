@@ -1,6 +1,6 @@
 import { type VariantProps, cva } from "class-variance-authority";
 
-import { cn } from "@/lib/utils";
+import { cn } from "../../../lib/utils";
 
 import {
   Card as ShadcnCard,
@@ -10,7 +10,7 @@ import {
   CardFooter as ShadcnCardFooter,
   CardHeader as ShadcnCardHeader,
   CardTitle as ShadcnCardTitle,
-} from "@/components/ui/card";
+} from "../card";
 
 import "./styles/retro.css";
 

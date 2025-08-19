@@ -1,6 +1,6 @@
 {
   "name": "@buildappolis/env-manager",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "Enterprise-grade environment variable management system with encryption, snapshots, and validation",
   "main": "index.ts",
   "types": "index.ts",
