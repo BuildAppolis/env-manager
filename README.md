@@ -16,13 +16,18 @@ BuildAppolis Env-Manager is a powerful, secure environment variable management s
 ## ✨ Features
 
 - 🔐 **Encrypted Storage** - Sensitive variables are encrypted at rest
+- 🔑 **Secure Password** - Master password stored securely in user home directory
+- 🔓 **Password Recovery** - Recovery phrase system for forgotten passwords
+- 🌿 **Branch-Specific Variables** - Different configs for different git branches
+- 📊 **Git Integration** - Shows branch info, commit status, and more
+- 🔄 **Auto-Migration** - Automatic config file migrations on updates
 - 📸 **Snapshots** - Create and restore configuration snapshots
 - ✅ **Validation** - Validate requirements against project configurations
 - 🎯 **Type-Safe** - Full TypeScript support
 - 🌐 **Web UI** - Beautiful, responsive management interface
-- 🔄 **Hot Reload** - Changes apply without server restart
 - 📦 **Export/Import** - Generate .env files with proper formatting
 - 🏢 **Multi-Project** - Support for multiple project configurations
+- 🚀 **Framework Support** - Works with Next.js, Astro, Vue, Nuxt, SvelteKit, and more
 
 ## 📄 License
 
@@ -74,11 +79,18 @@ Once installed globally, you can use these commands:
 # Initialize project with env-manager
 env-manager init
 
-# Set or change password
+# Set or change master password
 env-manager setup-password
+
+# Recover password using recovery phrase
+env-manager recover-password
 
 # Start the service
 env-manager start
+env-manager start --project /path/to/project  # Start specific project
+
+# List all registered projects
+env-manager projects
 
 # Check service status
 env-manager status
@@ -91,6 +103,26 @@ env-manager --help
 ```
 
 Access the UI at `http://localhost:3001`
+
+## 🎯 Framework Integration
+
+Env-Manager works seamlessly with all major frameworks. See our comprehensive [Framework Integration Guide](docs/FRAMEWORK_INTEGRATION.md) for detailed examples with:
+
+- **Next.js** - Full support for server and client variables
+- **Astro** - Perfect for static sites and SSR
+- **Vue/Nuxt** - Runtime config integration
+- **SvelteKit** - Environment variable management
+- **Remix** - Server-side variable handling
+- **Express/Node.js** - Traditional Node.js apps
+
+Quick example with Next.js:
+```bash
+# Initialize in your Next.js project
+env-manager init
+
+# Start both env-manager and Next.js dev server
+npm run dev  # Add "env-manager start &" to your dev script
+```
 
 ### Integration with Your Project
 

@@ -23,7 +23,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // Load project config from root directory
-    const projectRoot = path.resolve(process.cwd(), '..');
+    const projectRoot = process.env.PROJECT_ROOT || path.resolve(process.cwd(), '..');
     const configPath = path.join(projectRoot, 'env.config.ts');
     
     try {

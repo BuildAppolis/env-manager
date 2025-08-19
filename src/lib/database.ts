@@ -1,6 +1,8 @@
 import fs from 'fs/promises'
+import fsSync from 'fs'
 import path from 'path'
 import crypto from 'crypto'
+import os from 'os'
 import type { EnvVariable, DatabaseVariable, HistoryEntry, Snapshot } from '../types.js'
 
 export default class EnvDatabase {
@@ -15,11 +17,19 @@ export default class EnvDatabase {
       isAuthenticated: boolean
       lastAuth?: number
     }
+    hotReload?: {
+      enabled: boolean
+      autoReload: boolean
+      reloadDelay: number
+      wsPort: number
+      notifyOnly: boolean
+    }
   }
   private encryptionKey: string | null = null
 
   constructor(dbPath?: string) {
-    this.dbPath = dbPath || path.join(process.cwd(), 'env-data.json')
+    const projectRoot = process.env.PROJECT_ROOT || process.cwd()
+    this.dbPath = dbPath || path.join(projectRoot, 'env-data.json')
     this.data = {
       variables: [],
       history: [],
@@ -86,8 +96,39 @@ export default class EnvDatabase {
     return decrypted
   }
 
+  private loadSecureCredentials(): { passwordHash: string; salt: string; encryptionKey: string } | null {
+    try {
+      const credPath = path.join(os.homedir(), '.env-manager', 'credentials.json')
+      if (fsSync.existsSync(credPath)) {
+        const credentials = JSON.parse(fsSync.readFileSync(credPath, 'utf-8'))
+        return credentials
+      }
+    } catch (error) {
+      console.error('Failed to load secure credentials:', error)
+    }
+    return null
+  }
+
   authenticate(password: string): boolean {
     try {
+      // First try to load credentials from secure storage
+      const secureCredentials = this.loadSecureCredentials()
+      
+      if (secureCredentials) {
+        // Use secure credentials from home directory
+        const hash = this.hashPassword(password, secureCredentials.salt)
+        if (hash === secureCredentials.passwordHash) {
+          this.data.auth.isAuthenticated = true
+          this.data.auth.lastAuth = Date.now()
+          // Use the stored encryption key instead of deriving from password
+          this.encryptionKey = secureCredentials.encryptionKey
+          this.saveData()
+          return true
+        }
+        return false
+      }
+      
+      // Fallback to old method for backward compatibility
       // First time setup
       if (!this.data.auth.passwordHash || !this.data.auth.salt) {
         const salt = this.generateSalt()
@@ -103,7 +144,7 @@ export default class EnvDatabase {
         return true
       }
 
-      // Verify existing password
+      // Verify existing password (old method)
       const hash = this.hashPassword(password, this.data.auth.salt!)
       if (hash === this.data.auth.passwordHash) {
         this.data.auth.isAuthenticated = true
@@ -130,13 +171,18 @@ export default class EnvDatabase {
     this.saveData()
   }
 
-  setVariable(name: string, value: string, metadata: Partial<EnvVariable> = {}): DatabaseVariable {
+  setVariable(name: string, value: string, metadata: Partial<DatabaseVariable> = {}): DatabaseVariable {
     if (!this.isAuthenticated()) {
       throw new Error('Not authenticated')
     }
 
     const now = new Date().toISOString()
-    const existingIndex = this.data.variables.findIndex(v => v.name === name)
+    
+    // Find existing variable considering branch
+    const branch = metadata.branch || 'main'
+    const existingIndex = this.data.variables.findIndex(v => 
+      v.name === name && (v.branch || 'main') === branch
+    )
 
     const variable: DatabaseVariable = {
       name,
@@ -145,6 +191,8 @@ export default class EnvDatabase {
       description: metadata.description || '',
       sensitive: metadata.sensitive || false,
       encrypted: metadata.sensitive || false,
+      branch: metadata.branch,
+      environment: metadata.environment,
       createdAt: existingIndex >= 0 ? this.data.variables[existingIndex].createdAt : now,
       updatedAt: now
     }
@@ -192,12 +240,35 @@ export default class EnvDatabase {
     return variable
   }
 
-  getAllVariables(): DatabaseVariable[] {
+  getAllVariables(branch?: string): DatabaseVariable[] {
     if (!this.isAuthenticated()) {
       throw new Error('Not authenticated')
     }
 
-    return this.data.variables.map(variable => {
+    const targetBranch = branch || 'main'
+    
+    // Filter variables by branch, with fallback to main branch
+    const branchVariables = this.data.variables.filter(v => {
+      const varBranch = v.branch || 'main'
+      return varBranch === targetBranch || (targetBranch !== 'main' && varBranch === 'main')
+    })
+
+    // Deduplicate - branch-specific overrides main
+    const variableMap = new Map<string, DatabaseVariable>()
+    
+    // First add main branch variables
+    branchVariables
+      .filter(v => (v.branch || 'main') === 'main')
+      .forEach(v => variableMap.set(v.name, v))
+    
+    // Then override with branch-specific
+    if (targetBranch !== 'main') {
+      branchVariables
+        .filter(v => v.branch === targetBranch)
+        .forEach(v => variableMap.set(v.name, v))
+    }
+
+    return Array.from(variableMap.values()).map(variable => {
       if (variable.encrypted && variable.sensitive) {
         try {
           return {
@@ -214,6 +285,18 @@ export default class EnvDatabase {
       }
       return variable
     })
+  }
+
+  getVariablesByBranch(branch: string): DatabaseVariable[] {
+    return this.getAllVariables(branch)
+  }
+
+  getBranches(): string[] {
+    const branches = new Set<string>()
+    this.data.variables.forEach(v => {
+      branches.add(v.branch || 'main')
+    })
+    return Array.from(branches)
   }
 
   deleteVariable(name: string): boolean {
@@ -378,5 +461,28 @@ export default class EnvDatabase {
     })
 
     return lines.join('\n')
+  }
+
+  // Hot-reload settings management
+  getHotReloadSettings(): any {
+    if (!this.data.hotReload) {
+      this.data.hotReload = {
+        enabled: true,
+        autoReload: true,
+        reloadDelay: 1000,
+        wsPort: 3002,
+        notifyOnly: false
+      }
+      this.saveData()
+    }
+    return this.data.hotReload
+  }
+
+  setHotReloadSettings(settings: any): void {
+    this.data.hotReload = {
+      ...this.getHotReloadSettings(),
+      ...settings
+    }
+    this.saveData()
   }
 }

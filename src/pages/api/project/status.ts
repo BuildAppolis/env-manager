@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { getDatabase } from '../../../lib/session.js';
 import ProjectValidator from '../../../lib/project-validator.js';
+import { getGitUtils } from '../../../lib/git-utils.js';
+import { getBranchAwareConfigLoader } from '../../../lib/config-migrator.js';
 import path from 'path';
 
 export const GET: APIRoute = async () => {
@@ -11,13 +13,22 @@ export const GET: APIRoute = async () => {
     // It doesn't expose sensitive variable values, only validation status
 
     // Load project config from root directory
-    const projectRoot = path.resolve(process.cwd(), '..');
+    const projectRoot = process.env.PROJECT_ROOT || path.resolve(process.cwd(), '..');
     const configPath = path.join(projectRoot, 'env.config.ts');
     
+    // Get git information
+    const gitUtils = getGitUtils(projectRoot);
+    const gitInfo = await gitUtils.getGitInfo();
+    const branches = await gitUtils.getAllBranches();
+    
     try {
-      // Import the actual config file
-      const configModule = await import(/* @vite-ignore */ configPath);
-      const projectConfig = configModule.default;
+      // Load config with branch awareness and migration
+      const configLoader = getBranchAwareConfigLoader(projectRoot);
+      const projectConfig = await configLoader.loadConfig(configPath);
+      
+      // Get branch-specific requirements
+      const requirements = projectConfig.getBranchRequirements();
+      const environment = projectConfig.getEnvironment();
       
       // Convert the config to match our validator format
       const validatorConfig: {
@@ -36,8 +47,8 @@ export const GET: APIRoute = async () => {
         }
       };
 
-      // Convert requirements format
-      for (const [groupName, group] of Object.entries(projectConfig.requirements)) {
+      // Convert requirements format - use branch-specific requirements
+      for (const [groupName, group] of Object.entries(requirements)) {
         const groupData = group as any;
         validatorConfig.requirements[groupName] = {
           name: groupName.charAt(0).toUpperCase() + groupName.slice(1),
@@ -57,7 +68,22 @@ export const GET: APIRoute = async () => {
       
       const validator = new ProjectValidator(database);
       await validator.loadProjectConfig(validatorConfig);
-      const results = await validator.validateProjectRequirements();
+      const validationResults = await validator.validateProjectRequirements();
+      
+      // Combine validation results with git info
+      const results = {
+        ...validationResults,
+        git: gitInfo,
+        branches: branches,
+        currentBranch: gitInfo.branch || 'main',
+        environment: environment,
+        projectInfo: {
+          name: projectConfig.projectName,
+          version: projectConfig.projectVersion || '1.0.0',
+          configVersion: projectConfig.version || '1.0.0',
+          branchStrategy: projectConfig.branches?.strategy || 'inherit'
+        }
+      };
       
       return new Response(JSON.stringify(results), {
         status: 200,

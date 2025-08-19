@@ -1,6 +1,6 @@
 {
   "name": "@buildappolis/env-manager",
-  "version": "1.1.0",
+  "version": "1.3.0",
   "description": "Enterprise-grade environment variable management system with encryption, snapshots, and validation",
   "main": "index.ts",
   "types": "index.ts",
@@ -67,14 +67,17 @@
     "react-dom": "^19.1.1",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.12",
-    "typescript": "^5.0.0"
+    "tw-animate-css": "^1.3.7",
+    "typescript": "^5.0.0",
+    "ws": "^8.16.0"
   },
   "optionalDependencies": {
     "open": "^10.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "tw-animate-css": "^1.3.7"
+    "@types/ws": "^8.5.10",
+    "npm-cli-login": "^1.0.0"
   },
   "keywords": [
     "environment",

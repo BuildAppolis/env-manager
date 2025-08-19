@@ -1,4 +1,4 @@
-import { g as getDatabase } from '../../../chunks/session_DAr66qTp.mjs';
+import { g as getDatabase } from '../../../chunks/session_CHWjKZB4.mjs';
 import path from 'path';
 export { renderers } from '../../../renderers.mjs';
 
@@ -18,7 +18,7 @@ const POST = async ({ request }) => {
         headers: { "Content-Type": "application/json" }
       });
     }
-    const projectRoot = path.resolve(process.cwd(), "..");
+    const projectRoot = process.env.PROJECT_ROOT || path.resolve(process.cwd(), "..");
     const configPath = path.join(projectRoot, "env.config.ts");
     try {
       const configModule = await import(

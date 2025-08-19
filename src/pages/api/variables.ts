@@ -1,7 +1,10 @@
 import type { APIRoute } from 'astro';
 import { getDatabase } from '../../lib/session.js';
+import { getGitUtils } from '../../lib/git-utils.js';
+import { getHotReloadManager } from '../../lib/hot-reload.js';
+import path from 'path';
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ url }) => {
   try {
     const database = getDatabase();
     
@@ -12,8 +15,18 @@ export const GET: APIRoute = async () => {
       });
     }
 
-    const variables = database.getAllVariables();
-    return new Response(JSON.stringify(variables), {
+    // Get branch parameter or use current branch
+    let branch = url.searchParams.get('branch');
+    
+    if (!branch) {
+      const projectRoot = process.env.PROJECT_ROOT || path.resolve(process.cwd(), '..');
+      const gitUtils = getGitUtils(projectRoot);
+      const gitInfo = await gitUtils.getGitInfo();
+      branch = gitInfo.branch || 'main';
+    }
+
+    const variables = database.getAllVariables(branch);
+    return new Response(JSON.stringify({ variables, branch }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
@@ -38,7 +51,30 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const variable = await request.json();
+    
+    // If no branch specified, get current git branch
+    if (!variable.branch) {
+      const projectRoot = process.env.PROJECT_ROOT || path.resolve(process.cwd(), '..');
+      const gitUtils = getGitUtils(projectRoot);
+      const gitInfo = await gitUtils.getGitInfo();
+      variable.branch = gitInfo.branch || 'main';
+    }
+    
     const result = database.setVariable(variable.name, variable.value, variable);
+    
+    // Trigger hot-reload if enabled
+    const hotReloadSettings = database.getHotReloadSettings();
+    if (hotReloadSettings.enabled && hotReloadSettings.autoReload) {
+      const manager = getHotReloadManager(hotReloadSettings);
+      await manager.triggerReload({
+        type: 'variables_changed',
+        timestamp: Date.now(),
+        details: {
+          variable: variable.name,
+          branch: variable.branch
+        }
+      });
+    }
     
     return new Response(JSON.stringify(result), {
       status: 200,

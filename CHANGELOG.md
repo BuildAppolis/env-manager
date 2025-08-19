@@ -7,6 +7,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2025-08-19
+
+### Added
+- 🔥 **Hot-Reload System** - Real-time environment variable updates without server restart
+  - WebSocket server for instant notifications
+  - Client library with framework integrations (Next.js, Astro, Vue, SvelteKit)
+  - Beautiful loading overlay and toast notifications
+  - Configurable auto-reload with delay settings
+- 🌿 **Branch-Specific Variables** - Different configs for different git branches
+  - Auto-detection of current git branch
+  - Branch inheritance strategies (inherit, isolate, merge)
+  - Environment mapping (dev, staging, prod)
+  - CLI commands for branch management
+- 📊 **Git Integration** - Complete git information in project status
+  - Shows branch, commit, author, dirty status
+  - Ahead/behind tracking for remote branches
+  - Tag detection at current commit
+- 🔄 **Config Migration System** - Automatic config file upgrades
+  - Version tracking and migration
+  - Backup creation before migration
+  - Branch-aware config loading
+- 🔑 **Secure Password Storage** - Master password in home directory
+  - Credentials stored in `~/.env-manager/credentials.json`
+  - Recovery phrase system for forgotten passwords
+  - Backward compatibility with project .env files
+- 🏢 **Multi-Project Support** - Manage multiple projects simultaneously
+  - Project registry with unique ports
+  - Custom port configuration per project
+  - Project switching and listing
+- 📚 **Comprehensive Documentation**
+  - Framework Integration Guide
+  - Branch Configuration Guide
+  - Hot-reload setup instructions
+
+### Changed
+- Password storage moved from project `.env` to secure home directory location
+- Variables API now supports branch-specific storage
+- Project status endpoint includes git information
+- Database structure enhanced for hot-reload settings
+- CLI enhanced with new commands: `branch`, `branch-list`, `branch-copy`, `configure`, `recover-password`, `projects`
+
+### Fixed
+- Build errors with missing imports and CSS dependencies
+- Config loading now uses PROJECT_ROOT environment variable
+- Password prompt hanging issue in CLI
+- Vite alias configuration for proper path resolution
+- Project-specific env.config.ts loading
+
+## [1.2.0] - 2025-08-19
+
+### Added
+- 
+
+### Changed
+- 
+
+### Fixed
+- 
+
 ## [1.1.0] - 2025-08-19
 
 ### Added
@@ -115,7 +174,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Password-based authentication for access control
 - Secure export with password confirmation
 
-[Unreleased]: https://github.com/buildappolis/env-manager/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/buildappolis/env-manager/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/buildappolis/env-manager/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/buildappolis/env-manager/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/buildappolis/env-manager/compare/v1.0.5...v1.1.0
 [1.0.5]: https://github.com/buildappolis/env-manager/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/buildappolis/env-manager/compare/v1.0.3...v1.0.4

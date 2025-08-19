@@ -1,4 +1,4 @@
-import { g as getDatabase, E as EnvDatabase } from '../../chunks/session_DAr66qTp.mjs';
+import { g as getDatabase, E as EnvDatabase } from '../../chunks/session_CHWjKZB4.mjs';
 import fs from 'fs/promises';
 import path from 'path';
 export { renderers } from '../../renderers.mjs';
@@ -46,7 +46,7 @@ async function handler(req, res) {
 
 `;
     content = warningNotice + content;
-    const projectRoot = path.resolve(process.cwd(), "..");
+    const projectRoot = process.env.PROJECT_ROOT || path.resolve(process.cwd(), "..");
     const filePath = path.join(projectRoot, filename);
     await fs.writeFile(filePath, content, "utf-8");
     res.status(200).json({

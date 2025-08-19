@@ -58,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     content = warningNotice + content;
 
     // Write file to project root (go up from env-manager directory)
-    const projectRoot = path.resolve(process.cwd(), '..');
+    const projectRoot = process.env.PROJECT_ROOT || path.resolve(process.cwd(), '..');
     const filePath = path.join(projectRoot, filename);
 
     await fs.writeFile(filePath, content, 'utf-8');

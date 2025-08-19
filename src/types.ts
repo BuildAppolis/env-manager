@@ -14,6 +14,17 @@ export interface DatabaseVariable extends EnvVariable {
   encrypted: boolean
   createdAt: string
   updatedAt: string
+  branch?: string  // Branch-specific variable
+  environment?: string  // Environment (dev, staging, prod)
+}
+
+// Hot Reload Configuration
+export interface HotReloadSettings {
+  enabled: boolean
+  autoReload: boolean
+  reloadDelay: number
+  wsPort: number
+  notifyOnly: boolean
 }
 
 // Project Configuration Types
