@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.3] - 2025-08-19
+
+### Fixed
+- **Critical**: Fixed remaining @/lib/utils imports in UI components
+- Resolved all path alias issues for global npm installations
+- Complete fix for Vite/Rollup build failures
+
 ## [1.4.2] - 2025-08-19
 
 ### Fixed
