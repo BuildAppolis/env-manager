@@ -39,7 +39,7 @@ class EnvDatabase {
     return crypto.randomBytes(16).toString("hex");
   }
   hashPassword(password, salt) {
-    return crypto.pbkdf2Sync(password, salt, 1e4, 64, "sha512").toString("hex");
+    return crypto.pbkdf2Sync(password, salt, 1e5, 64, "sha512").toString("hex");
   }
   deriveEncryptionKey(password, salt) {
     return crypto.pbkdf2Sync(password, salt, 1e4, 32, "sha512").toString("hex");

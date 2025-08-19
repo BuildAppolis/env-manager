@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.8] - 2025-08-19
+
+### Fixed
+- **CRITICAL: Fixed password authentication mismatch**
+  - CLI was using 100,000 PBKDF2 iterations but server was using 10,000
+  - This caused all password verifications to fail
+  - Passwords now correctly authenticate in the UI
+  - Standardized to 100,000 iterations for proper security
+
+### Documentation
+- **Added complete uninstall/factory reset instructions**
+  - Documented how to completely remove env-manager and all data
+  - Added factory reset procedure to reset to defaults
+  - Listed all data storage locations for manual cleanup
+  - Added troubleshooting section for common issues
+  - Included project-specific cleanup instructions
+
 ## [1.4.7] - 2025-08-19
 
 ### Fixed

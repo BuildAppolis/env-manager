@@ -1,4 +1,4 @@
-import { g as getDatabase } from '../../chunks/session_CHWjKZB4.mjs';
+import { g as getDatabase } from '../../chunks/session_AwEyVFTC.mjs';
 import { g as getHotReloadManager } from '../../chunks/hot-reload_CovL2LCW.mjs';
 export { renderers } from '../../renderers.mjs';
 

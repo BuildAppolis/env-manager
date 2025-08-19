@@ -1,4 +1,4 @@
-import { g as getDatabase } from '../../chunks/session_CHWjKZB4.mjs';
+import { g as getDatabase } from '../../chunks/session_AwEyVFTC.mjs';
 import { g as getGitUtils } from '../../chunks/git-utils_B6WJYd3b.mjs';
 import { g as getHotReloadManager } from '../../chunks/hot-reload_CovL2LCW.mjs';
 import path from 'path';

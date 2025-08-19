@@ -65,7 +65,7 @@ export default class EnvDatabase {
   }
 
   private hashPassword(password: string, salt: string): string {
-    return crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex')
+    return crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex')
   }
 
   private deriveEncryptionKey(password: string, salt: string): string {
