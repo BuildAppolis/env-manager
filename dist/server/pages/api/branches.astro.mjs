@@ -1,4 +1,4 @@
-import { g as getDatabase } from '../../chunks/session_AwEyVFTC.mjs';
+import { g as getDatabase } from '../../chunks/session_CMQvN_Ad.mjs';
 import { g as getGitUtils } from '../../chunks/git-utils_B6WJYd3b.mjs';
 import path from 'path';
 export { renderers } from '../../renderers.mjs';
@@ -6,13 +6,9 @@ export { renderers } from '../../renderers.mjs';
 const GET = async ({ request }) => {
   try {
     const database = getDatabase();
-    if (!database.isAuthenticated()) {
-      return new Response(JSON.stringify({ error: "Not authenticated" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" }
-      });
-    }
-    const projectRoot = process.env.PROJECT_ROOT || path.resolve(process.cwd(), "..");
+    const url = new URL(request.url);
+    const projectPath = url.searchParams.get("projectPath");
+    const projectRoot = projectPath || process.env.PROJECT_ROOT || path.resolve(process.cwd(), "..");
     const gitUtils = getGitUtils(projectRoot);
     const gitBranches = await gitUtils.getAllBranches();
     const dbBranches = database.getBranches();

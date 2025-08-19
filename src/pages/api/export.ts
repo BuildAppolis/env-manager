@@ -1,39 +1,47 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { APIRoute } from 'astro';
 import EnvDatabase from '../../lib/database.js';
 import { getDatabase } from '../../lib/session.js';
 import fs from 'fs/promises';
 import path from 'path';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
+export const POST: APIRoute = async ({ request }) => {
   try {
     const db = getDatabase();
     
     // Check if authenticated
     if (!db.isAuthenticated()) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
-    const { type, password } = req.body;
+    const { type, password } = await request.json();
 
     if (!type || !['env', 'env-example'].includes(type)) {
-      return res.status(400).json({ error: 'Invalid export type. Must be "env" or "env-example"' });
+      return new Response(JSON.stringify({ error: 'Invalid export type. Must be "env" or "env-example"' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     // For actual .env export, require password confirmation
     if (type === 'env') {
       if (!password) {
-        return res.status(400).json({ error: 'Password confirmation required for .env export' });
+        return new Response(JSON.stringify({ error: 'Password confirmation required for .env export' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        });
       }
 
       // Validate password by attempting authentication
       const testDb = new EnvDatabase();
       const isPasswordValid = testDb.authenticate(password);
       if (!isPasswordValid) {
-        return res.status(401).json({ error: 'Invalid password' });
+        return new Response(JSON.stringify({ error: 'Invalid password' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        });
       }
     }
 
@@ -63,15 +71,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await fs.writeFile(filePath, content, 'utf-8');
 
-    res.status(200).json({ 
+    return new Response(JSON.stringify({ 
       success: true, 
       message: `${filename} has been created in your project root`,
       path: filePath
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
     });
 
   } catch (error) {
     console.error('Export error:', error);
-    res.status(500).json({ error: 'Failed to export file' });
+    return new Response(JSON.stringify({ error: 'Failed to export file' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 }
 

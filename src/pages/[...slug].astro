@@ -1,0 +1,70 @@
+---
+import Layout8Bit from '../layouts/Layout8Bit.astro'
+import EnvManager8Bit from '../components/EnvManager8Bit'
+import VersionFooter from '../components/VersionFooter'
+import '../styles/global.css'
+import fs from 'fs'
+import path from 'path'
+import os from 'os'
+
+// Get the slug parameters
+const { slug } = Astro.params
+const parts = slug ? slug.split('/') : []
+
+// Parse project and branch from URL
+const projectId = parts[0] || null
+const branch = parts[1] || 'main'
+
+// If we have no project ID, redirect to home
+if (!projectId) {
+  return Astro.redirect('/')
+}
+
+// Load project registry to find the actual project
+const registryPath = path.join(os.homedir(), '.env-manager', 'projects.json')
+let project = null
+
+try {
+  if (fs.existsSync(registryPath)) {
+    const registry = JSON.parse(fs.readFileSync(registryPath, 'utf-8'))
+    
+    // Find project by cleaned name
+    for (const [projectPath, projectData] of Object.entries(registry.projects)) {
+      const name = projectData.packageInfo?.name || projectData.name || path.basename(projectPath)
+      const cleanName = name
+        .replace(/^@[^/]+\//, '')
+        .replace(/[^a-z0-9-]/gi, '-')
+        .toLowerCase()
+      
+      if (cleanName === projectId) {
+        project = {
+          ...projectData,
+          id: projectPath,
+          path: projectPath,
+          gitBranch: branch
+        }
+        break
+      }
+    }
+  }
+} catch (error) {
+  console.error('Failed to load project registry:', error)
+}
+
+// If project not found, redirect to home
+if (!project) {
+  return Astro.redirect('/')
+}
+---
+
+<Layout8Bit projectName={project.name} gitBranch={branch}>
+  <div class="min-h-screen bg-gray-900 pb-16">
+    <EnvManager8Bit 
+      client:load 
+      project={project}
+      initialBranch={branch}
+      skipAuth={true}
+    />
+    <VersionFooter client:load />
+  </div>
+</Layout8Bit>

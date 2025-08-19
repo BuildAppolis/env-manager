@@ -3,17 +3,20 @@ import { getDatabase } from '../../../lib/session.js';
 import ProjectValidator from '../../../lib/project-validator.js';
 import { getGitUtils } from '../../../lib/git-utils.js';
 import { getBranchAwareConfigLoader } from '../../../lib/config-migrator.js';
+import type { ValidationResults, GroupResult, VariableResult } from '../../../types.js';
 import path from 'path';
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ url }) => {
   try {
-    const database = getDatabase();
+    // Get project path from query params
+    const projectPath = url.searchParams.get('projectPath');
+    const database = getDatabase(projectPath || undefined);
     
     // Status endpoint is public for validation purposes
     // It doesn't expose sensitive variable values, only validation status
 
     // Load project config from root directory
-    const projectRoot = process.env.PROJECT_ROOT || path.resolve(process.cwd(), '..');
+    const projectRoot = projectPath || process.env.PROJECT_ROOT || path.resolve(process.cwd(), '..');
     const configPath = path.join(projectRoot, 'env.config.ts');
     
     // Get git information
@@ -66,9 +69,47 @@ export const GET: APIRoute = async () => {
         };
       }
       
-      const validator = new ProjectValidator(database);
-      await validator.loadProjectConfig(validatorConfig);
-      const validationResults = await validator.validateProjectRequirements();
+      // Try to validate, but if not authenticated, return basic structure
+      let validationResults;
+      try {
+        const validator = new ProjectValidator(database);
+        await validator.loadProjectConfig(validatorConfig);
+        validationResults = await validator.validateProjectRequirements(gitInfo.branch);
+      } catch (authError: any) {
+        console.error('ProjectValidator error:', authError.message);
+        // If auth fails, return structure with all variables marked as missing
+        validationResults = {
+          projectName: validatorConfig.projectName,
+          isValid: false,
+          groups: {} as Record<string, GroupResult>,
+          missing: [] as string[],
+          invalid: [] as string[],
+          canStart: false
+        };
+        
+        // Build groups with all variables marked as not configured
+        for (const [groupName, group] of Object.entries(validatorConfig.requirements)) {
+          const groupData = group as any;
+          validationResults.groups[groupName] = {
+            name: groupData.name,
+            required: groupData.required,
+            configured: false,
+            variables: groupData.variables.map((v: any): VariableResult => ({
+              name: v.name,
+              configured: false,
+              hasValue: false,
+              valid: false,
+              errors: [],
+              sensitive: v.sensitive,
+              type: v.name.startsWith('NEXT_PUBLIC_') ? 'client' : 'server',
+              description: v.description
+            })),
+            missing: groupData.variables.map((v: any) => v.name),
+            invalid: []
+          };
+          validationResults.missing.push(...groupData.variables.map((v: any) => v.name as string));
+        }
+      }
       
       // Combine validation results with git info
       const results = {

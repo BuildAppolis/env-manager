@@ -64,11 +64,7 @@ export default function ProjectSelector({ onProjectSelect }: ProjectSelectorProp
       const data = await response.json();
       setHasGlobalPassword(data.hasGlobalPassword);
       
-      // If no global password, show setup modal
-      if (!data.hasGlobalPassword) {
-        setPasswordMode('setup');
-        setShowPasswordModal(true);
-      }
+      // Don't automatically show password setup - only show when needed
     } catch (error) {
       console.error('Failed to check password status:', error);
     }
@@ -77,8 +73,8 @@ export default function ProjectSelector({ onProjectSelect }: ProjectSelectorProp
   const handleProjectSelect = async (project: Project) => {
     setSelectedProject(project);
     
-    // Check if authentication is required
-    if (hasGlobalPassword || project.hasProjectPassword) {
+    // Only ask for password if project has one set
+    if (project.hasProjectPassword) {
       setPasswordMode('verify');
       setShowPasswordModal(true);
     } else {
@@ -326,7 +322,7 @@ export default function ProjectSelector({ onProjectSelect }: ProjectSelectorProp
                       </span>
                     )}
                     {project.hasProjectPassword && (
-                      <Lock className="w-4 h-4 text-yellow-400" title="Project password protected" />
+                      <Lock className="w-4 h-4 text-yellow-400" />
                     )}
                   </div>
                   
@@ -404,7 +400,8 @@ export default function ProjectSelector({ onProjectSelect }: ProjectSelectorProp
               </div>
             )}
 
-            <div className="space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); handlePasswordSubmit(); }}>
+              <div className="space-y-4">
               {passwordMode === 'recover' ? (
                 <>
                   <div>
@@ -485,9 +482,9 @@ export default function ProjectSelector({ onProjectSelect }: ProjectSelectorProp
                   />
                 </div>
               )}
-            </div>
+              </div>
 
-            <div className="flex justify-between items-center mt-6">
+              <div className="flex justify-between items-center mt-6">
               {passwordMode === 'verify' && (
                 <button
                   onClick={() => {
@@ -513,7 +510,7 @@ export default function ProjectSelector({ onProjectSelect }: ProjectSelectorProp
                   </button>
                 )}
                 <button
-                  onClick={handlePasswordSubmit}
+                  type="submit"
                   className="pixel-button bg-green-600 hover:bg-green-700 text-white px-4 py-2"
                 >
                   {passwordMode === 'setup' && 'Setup Password'}
@@ -522,7 +519,8 @@ export default function ProjectSelector({ onProjectSelect }: ProjectSelectorProp
                   {passwordMode === 'recover' && 'Reset Password'}
                 </button>
               </div>
-            </div>
+              </div>
+            </form>
           </div>
         </div>
       )}

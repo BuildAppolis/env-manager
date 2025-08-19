@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.10] - 2025-08-19
+
+### Fixed
+- **Critical: Fixed required variables validation for multi-project support**
+  - Fixed branch detection in variables API when projectPath is provided
+  - Fixed ProjectValidator to accept branch parameter for correct validation
+  - Fixed validation error when validation object is not a RegExp
+  - Required variables list now correctly updates when adding/deleting variables
+  - PROJECT_STATUS API now properly validates against project-specific variables
+
+### Improved
+- **Enhanced multi-project environment variable management**
+  - Variables API now correctly uses projectPath for branch detection
+  - Project status endpoint properly validates project-specific configurations
+  - Required variables section only shows truly missing variables
+  - Real-time updates when variables are added or removed
+
+### Technical
+- Fixed TypeScript type errors in draft system ('none' type added to VariableChange)
+- Fixed database getAllMetadata expression always truthy warning
+- Added proper type guards for validation functions
+- Improved error handling in project status validation
+
 ## [1.4.9] - 2025-08-19
 
 ### Fixed

@@ -89,6 +89,9 @@ export interface VariableResult {
   hasValue: boolean
   valid: boolean
   errors: string[]
+  sensitive?: boolean
+  type?: 'client' | 'server'
+  description?: string
 }
 
 export interface GroupResult {
@@ -131,4 +134,38 @@ export interface Snapshot {
   description: string
   variables: DatabaseVariable[]
   createdAt: string
+}
+
+// Draft/Publish System Types
+export interface DraftVariable extends DatabaseVariable {
+  isDraft: boolean
+  originalValue?: string
+  changeType: 'create' | 'update' | 'delete' | 'none'
+}
+
+export interface VersionEntry {
+  id: string
+  version: string
+  description: string
+  author?: string
+  timestamp: string
+  variableCount: number
+  changes: VariableChange[]
+  published: boolean
+}
+
+export interface VariableChange {
+  name: string
+  type: 'create' | 'update' | 'delete' | 'none'
+  oldValue?: string
+  newValue?: string
+  sensitive: boolean
+}
+
+export interface DraftSession {
+  id: string
+  createdAt: string
+  changes: Map<string, DraftVariable>
+  description?: string
+  author?: string
 }

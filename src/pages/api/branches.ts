@@ -7,14 +7,10 @@ export const GET: APIRoute = async ({ request }) => {
   try {
     const database = getDatabase();
     
-    if (!database.isAuthenticated()) {
-      return new Response(JSON.stringify({ error: 'Not authenticated' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
-    const projectRoot = process.env.PROJECT_ROOT || path.resolve(process.cwd(), '..');
+    // No auth required for reading git branches - it's just local filesystem info
+    const url = new URL(request.url);
+    const projectPath = url.searchParams.get('projectPath');
+    const projectRoot = projectPath || process.env.PROJECT_ROOT || path.resolve(process.cwd(), '..');
     const gitUtils = getGitUtils(projectRoot);
     
     // Get all branches from git

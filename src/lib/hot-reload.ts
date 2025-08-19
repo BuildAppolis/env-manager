@@ -178,7 +178,7 @@ export class HotReloadManager extends EventEmitter {
           this.broadcast({
             type: 'reload_completed',
             success: false,
-            error: error.message,
+            error: error instanceof Error ? error.message : String(error),
             event,
             timestamp: Date.now()
           })

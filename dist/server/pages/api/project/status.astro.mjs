@@ -1,4 +1,4 @@
-import { g as getDatabase } from '../../../chunks/session_AwEyVFTC.mjs';
+import { g as getDatabase } from '../../../chunks/session_CMQvN_Ad.mjs';
 import crypto from 'crypto';
 import { G as GitUtils, g as getGitUtils } from '../../../chunks/git-utils_B6WJYd3b.mjs';
 import fs from 'fs';
@@ -13,7 +13,7 @@ class ProjectValidator {
   async loadProjectConfig(config) {
     this.projectConfig = config;
   }
-  async validateProjectRequirements() {
+  async validateProjectRequirements(branch) {
     if (!this.projectConfig) {
       throw new Error("Project configuration not loaded");
     }
@@ -25,7 +25,7 @@ class ProjectValidator {
       invalid: [],
       canStart: false
     };
-    const currentVariables = this.db.getAllVariables();
+    const currentVariables = this.db.getAllVariables(branch);
     const variableMap = new Map(currentVariables.map((v) => [v.name, v]));
     for (const [groupName, group] of Object.entries(this.projectConfig.requirements)) {
       const groupResult = {
@@ -43,7 +43,10 @@ class ProjectValidator {
           configured: !!currentVar,
           hasValue: !!(currentVar && currentVar.value),
           valid: true,
-          errors: []
+          errors: [],
+          sensitive: varConfig.sensitive,
+          type: varConfig.name.startsWith("NEXT_PUBLIC_") ? "client" : "server",
+          description: varConfig.description
         };
         if (!currentVar) {
           varResult.configured = false;
@@ -58,7 +61,7 @@ class ProjectValidator {
           groupResult.missing.push(varConfig.name);
           results.missing.push(varConfig.name);
         } else {
-          if (varConfig.validation && !varConfig.validation.test(currentVar.value)) {
+          if (varConfig.validation && typeof varConfig.validation.test === "function" && !varConfig.validation.test(currentVar.value)) {
             varResult.valid = false;
             varResult.errors.push("Value format invalid");
             groupResult.invalid.push(varConfig.name);
@@ -219,13 +222,18 @@ class ConfigMigrator {
     try {
       if (configPath.endsWith(".ts")) {
         const { createJiti } = await import('jiti');
-        const jiti = createJiti(import.meta.url, { interopDefault: true });
+        const jiti = createJiti(import.meta.url, {
+          interopDefault: true,
+          cache: false,
+          requireCache: false
+        });
         const configModule = await jiti.import(configPath);
         config = configModule.default || configModule;
       } else {
+        const cacheBuster = `?t=${Date.now()}`;
         const configModule = await import(
           /* @vite-ignore */
-          configPath
+          configPath + cacheBuster
         );
         config = configModule.default || configModule;
       }
@@ -248,7 +256,14 @@ class ConfigMigrator {
       }
     }
     if (applied) {
-      const backupPath = configPath.replace(".ts", `.backup.${Date.now()}.ts`);
+      migratedConfig.version = latestVersion;
+      const projectDir = path.dirname(configPath);
+      const backupDir = path.join(projectDir, ".env-manager", "backups");
+      if (!fs.existsSync(backupDir)) {
+        fs.mkdirSync(backupDir, { recursive: true });
+      }
+      const timestamp = (/* @__PURE__ */ new Date()).toISOString().replace(/[:.]/g, "-");
+      const backupPath = path.join(backupDir, `env.config.v${currentVersion}.${timestamp}.ts`);
       const originalContent = fs.readFileSync(configPath, "utf-8");
       fs.writeFileSync(backupPath, originalContent);
       this.saveConfig(configPath, migratedConfig);
@@ -267,10 +282,12 @@ class ConfigMigrator {
     return 0;
   }
   saveConfig(configPath, config) {
-    const configContent = `// Auto-migrated env.config.ts - Version ${config.version}
-export default ${JSON.stringify(config, null, 2).replace(/"([^"]+)":/g, "$1:").replace(/"/g, "'")}
-`;
-    fs.writeFileSync(configPath, configContent);
+    const originalContent = fs.readFileSync(configPath, "utf-8");
+    const versionRegex = /version:\s*['"]([^'"]+)['"]/;
+    const updatedContent = originalContent.replace(versionRegex, `version: '${config.version}'`);
+    const headerRegex = /\/\/ Auto-migrated env\.config\.ts - Version [^\n]*/;
+    const finalContent = updatedContent.replace(headerRegex, `// Auto-migrated env.config.ts - Version ${config.version}`);
+    fs.writeFileSync(configPath, finalContent);
   }
 }
 class BranchAwareConfigLoader {
@@ -337,13 +354,14 @@ class BranchAwareConfigLoader {
   mergeRequirements(base, branch) {
     const merged = { ...base };
     for (const [key, value] of Object.entries(branch)) {
-      if (merged[key] && typeof value === "object") {
+      if (merged[key] && typeof value === "object" && value !== null) {
+        const typedValue = value;
         merged[key] = {
           ...merged[key],
-          ...value,
+          ...typedValue,
           variables: [
             ...merged[key].variables || [],
-            ...value.variables || []
+            ...typedValue.variables || []
           ]
         };
       } else {
@@ -355,9 +373,10 @@ class BranchAwareConfigLoader {
   inheritRequirements(base, branch) {
     const inherited = { ...base };
     for (const [key, value] of Object.entries(branch)) {
-      if (inherited[key] && typeof value === "object") {
+      if (inherited[key] && typeof value === "object" && value !== null) {
+        const typedValue = value;
         const baseVars = inherited[key].variables || [];
-        const branchVars = value.variables || [];
+        const branchVars = typedValue.variables || [];
         const varMap = /* @__PURE__ */ new Map();
         baseVars.forEach((v) => varMap.set(v.name, v));
         branchVars.forEach((v) => varMap.set(v.name, { ...varMap.get(v.name), ...v }));
@@ -377,10 +396,11 @@ function getBranchAwareConfigLoader(projectRoot) {
   return new BranchAwareConfigLoader(projectRoot);
 }
 
-const GET = async () => {
+const GET = async ({ url }) => {
   try {
-    const database = getDatabase();
-    const projectRoot = process.env.PROJECT_ROOT || path.resolve(process.cwd(), "..");
+    const projectPath = url.searchParams.get("projectPath");
+    const database = getDatabase(projectPath || void 0);
+    const projectRoot = projectPath || process.env.PROJECT_ROOT || path.resolve(process.cwd(), "..");
     const configPath = path.join(projectRoot, "env.config.ts");
     const gitUtils = getGitUtils(projectRoot);
     const gitInfo = await gitUtils.getGitInfo();
@@ -415,9 +435,43 @@ const GET = async () => {
           }))
         };
       }
-      const validator = new ProjectValidator(database);
-      await validator.loadProjectConfig(validatorConfig);
-      const validationResults = await validator.validateProjectRequirements();
+      let validationResults;
+      try {
+        const validator = new ProjectValidator(database);
+        await validator.loadProjectConfig(validatorConfig);
+        validationResults = await validator.validateProjectRequirements(gitInfo.branch);
+      } catch (authError) {
+        console.error("ProjectValidator error:", authError.message);
+        validationResults = {
+          projectName: validatorConfig.projectName,
+          isValid: false,
+          groups: {},
+          missing: [],
+          invalid: [],
+          canStart: false
+        };
+        for (const [groupName, group] of Object.entries(validatorConfig.requirements)) {
+          const groupData = group;
+          validationResults.groups[groupName] = {
+            name: groupData.name,
+            required: groupData.required,
+            configured: false,
+            variables: groupData.variables.map((v) => ({
+              name: v.name,
+              configured: false,
+              hasValue: false,
+              valid: false,
+              errors: [],
+              sensitive: v.sensitive,
+              type: v.name.startsWith("NEXT_PUBLIC_") ? "client" : "server",
+              description: v.description
+            })),
+            missing: groupData.variables.map((v) => v.name),
+            invalid: []
+          };
+          validationResults.missing.push(...groupData.variables.map((v) => v.name));
+        }
+      }
       const results = {
         ...validationResults,
         git: gitInfo,

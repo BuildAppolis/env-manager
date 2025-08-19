@@ -24,6 +24,7 @@ export default class EnvDatabase {
       wsPort: number
       notifyOnly: boolean
     }
+    metadata?: Record<string, string>
   }
   private encryptionKey: string | null = null
 
@@ -36,9 +37,11 @@ export default class EnvDatabase {
       snapshots: [],
       auth: {
         isAuthenticated: false
-      }
+      },
+      metadata: {}
     }
     this.loadData()
+    this.loadMasterPasswordIfNeeded()
   }
 
   private async loadData(): Promise<void> {
@@ -74,11 +77,18 @@ export default class EnvDatabase {
 
   private encrypt(text: string): string {
     if (!this.encryptionKey) {
-      throw new Error('Encryption key not available')
+      // If no encryption key (no password set), return the value as-is
+      // This allows sensitive variables to be stored without encryption when no password is set
+      return text
     }
 
+    // Ensure encryption key is a Buffer of the right length
+    const keyBuffer = typeof this.encryptionKey === 'string' 
+      ? Buffer.from(this.encryptionKey, 'hex').slice(0, 32)
+      : this.encryptionKey
+
     const iv = crypto.randomBytes(16)
-    const cipher = crypto.createCipheriv('aes-256-cbc', this.encryptionKey, iv)
+    const cipher = crypto.createCipheriv('aes-256-cbc', keyBuffer, iv)
     let encrypted = cipher.update(text, 'utf8', 'hex')
     encrypted += cipher.final('hex')
     return iv.toString('hex') + ':' + encrypted
@@ -86,11 +96,23 @@ export default class EnvDatabase {
 
   private decrypt(encryptedText: string): string {
     if (!this.encryptionKey) {
-      throw new Error('Encryption key not available')
+      // If no encryption key, assume the value is not encrypted
+      return encryptedText
     }
 
+    // Check if the text looks encrypted (has the IV prefix)
+    if (!encryptedText.includes(':')) {
+      // Not encrypted, return as-is
+      return encryptedText
+    }
+
+    // Ensure encryption key is a Buffer of the right length
+    const keyBuffer = typeof this.encryptionKey === 'string' 
+      ? Buffer.from(this.encryptionKey, 'hex').slice(0, 32)
+      : this.encryptionKey
+
     const [ivHex, encrypted] = encryptedText.split(':')
-    const decipher = crypto.createDecipheriv('aes-256-cbc', this.encryptionKey, Buffer.from(ivHex, 'hex'))
+    const decipher = crypto.createDecipheriv('aes-256-cbc', keyBuffer, Buffer.from(ivHex, 'hex'))
     let decrypted = decipher.update(encrypted, 'hex', 'utf8')
     decrypted += decipher.final('utf8')
     return decrypted
@@ -107,6 +129,20 @@ export default class EnvDatabase {
       console.error('Failed to load secure credentials:', error)
     }
     return null
+  }
+
+  private loadMasterPasswordIfNeeded(): void {
+    // If no project password is set but we need encryption for sensitive vars,
+    // try to load the master password
+    if (!this.data.auth.passwordHash && !this.data.auth.salt) {
+      const masterCreds = this.loadSecureCredentials()
+      if (masterCreds) {
+        // Use master password's encryption key for this project
+        this.encryptionKey = masterCreds.encryptionKey
+        // Mark as authenticated since we have master password
+        this.data.auth.isAuthenticated = true
+      }
+    }
   }
 
   authenticate(password: string): boolean {
@@ -162,6 +198,11 @@ export default class EnvDatabase {
   }
 
   isAuthenticated(): boolean {
+    // If no password is set, consider it always authenticated
+    if (!this.data.auth.passwordHash && !this.data.auth.salt) {
+      return true
+    }
+    // Otherwise check both auth status and encryption key
     return this.data.auth.isAuthenticated && !!this.encryptionKey
   }
 
@@ -190,7 +231,7 @@ export default class EnvDatabase {
       category: metadata.category || 'other',
       description: metadata.description || '',
       sensitive: metadata.sensitive || false,
-      encrypted: metadata.sensitive || false,
+      encrypted: (metadata.sensitive || false) && !!this.encryptionKey,
       branch: metadata.branch,
       environment: metadata.environment,
       createdAt: existingIndex >= 0 ? this.data.variables[existingIndex].createdAt : now,
@@ -484,5 +525,29 @@ export default class EnvDatabase {
       ...settings
     }
     this.saveData()
+  }
+
+  // Metadata methods for draft/publish system
+  getMetadata(key: string): string | undefined {
+    return this.data.metadata?.[key]
+  }
+
+  setMetadata(key: string, value: string): void {
+    if (!this.data.metadata) {
+      this.data.metadata = {}
+    }
+    this.data.metadata[key] = value
+    this.saveData()
+  }
+
+  deleteMetadata(key: string): void {
+    if (this.data.metadata) {
+      delete this.data.metadata[key]
+      this.saveData()
+    }
+  }
+
+  getAllMetadata(): Record<string, string> {
+    return { ...(this.data.metadata || {}) }
   }
 }

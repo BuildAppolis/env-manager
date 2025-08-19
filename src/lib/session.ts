@@ -1,15 +1,31 @@
 import EnvDatabase from './database.js';
 
-// Singleton database instance to share across API routes
-let globalDb: EnvDatabase | null = null;
+// Store database instances per project path
+const databaseInstances = new Map<string, EnvDatabase>();
 
-export function getDatabase(): EnvDatabase {
-  if (!globalDb) {
-    globalDb = new EnvDatabase();
+export function getDatabase(projectPath?: string): EnvDatabase {
+  const key = projectPath || 'default';
+  
+  if (!databaseInstances.has(key)) {
+    // Create database with specific project path
+    const dbPath = projectPath ? `${projectPath}/env-data.json` : undefined;
+    const db = new EnvDatabase(dbPath);
+    
+    // Set PROJECT_ROOT for this database instance
+    if (projectPath) {
+      process.env.PROJECT_ROOT = projectPath;
+    }
+    
+    databaseInstances.set(key, db);
   }
-  return globalDb;
+  
+  return databaseInstances.get(key)!;
 }
 
-export function resetDatabase(): void {
-  globalDb = null;
+export function resetDatabase(projectPath?: string): void {
+  if (projectPath) {
+    databaseInstances.delete(projectPath);
+  } else {
+    databaseInstances.clear();
+  }
 }

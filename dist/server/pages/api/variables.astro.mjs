@@ -1,26 +1,31 @@
-import { g as getDatabase } from '../../chunks/session_AwEyVFTC.mjs';
+import { g as getDatabase } from '../../chunks/session_CMQvN_Ad.mjs';
 import { g as getGitUtils } from '../../chunks/git-utils_B6WJYd3b.mjs';
-import { g as getHotReloadManager } from '../../chunks/hot-reload_CovL2LCW.mjs';
+import { g as getHotReloadManager } from '../../chunks/hot-reload_DH00vsQQ.mjs';
 import path from 'path';
+import crypto from 'crypto';
 export { renderers } from '../../renderers.mjs';
 
 const GET = async ({ url }) => {
   try {
-    const database = getDatabase();
-    if (!database.isAuthenticated()) {
-      return new Response(JSON.stringify({ error: "Not authenticated" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" }
-      });
-    }
+    const projectPath = url.searchParams.get("projectPath");
+    const database = getDatabase(projectPath || void 0);
     let branch = url.searchParams.get("branch");
     if (!branch) {
-      const projectRoot = process.env.PROJECT_ROOT || path.resolve(process.cwd(), "..");
+      const projectRoot = projectPath || process.env.PROJECT_ROOT || path.resolve(process.cwd(), "..");
       const gitUtils = getGitUtils(projectRoot);
       const gitInfo = await gitUtils.getGitInfo();
       branch = gitInfo.branch || "main";
     }
-    const variables = database.getAllVariables(branch);
+    let variables = [];
+    try {
+      variables = database.getAllVariables(branch);
+    } catch (authError) {
+      if (authError.message === "Not authenticated") {
+        variables = [];
+      } else {
+        throw authError;
+      }
+    }
     return new Response(JSON.stringify({ variables, branch }), {
       status: 200,
       headers: { "Content-Type": "application/json" }
@@ -33,10 +38,13 @@ const GET = async ({ url }) => {
     });
   }
 };
-const POST = async ({ request }) => {
+const POST = async ({ request, url }) => {
   try {
-    const database = getDatabase();
-    if (!database.isAuthenticated()) {
+    const projectPath = url.searchParams.get("projectPath");
+    const database = getDatabase(projectPath || void 0);
+    const dbData = database.data;
+    const hasPassword = !!(dbData?.auth?.passwordHash && dbData?.auth?.salt);
+    if (hasPassword && !database.isAuthenticated()) {
       return new Response(JSON.stringify({ error: "Not authenticated" }), {
         status: 401,
         headers: { "Content-Type": "application/json" }
@@ -49,7 +57,46 @@ const POST = async ({ request }) => {
       const gitInfo = await gitUtils.getGitInfo();
       variable.branch = gitInfo.branch || "main";
     }
-    const result = database.setVariable(variable.name, variable.value, variable);
+    let result;
+    try {
+      result = database.setVariable(variable.name, variable.value, variable);
+    } catch (setError) {
+      console.error("Error setting variable:", setError);
+      if (setError.message === "Not authenticated" && !hasPassword) {
+        const dbData2 = database.data;
+        const now = (/* @__PURE__ */ new Date()).toISOString();
+        const newVariable = {
+          name: variable.name,
+          value: variable.value,
+          category: variable.category || "other",
+          description: variable.description || "",
+          sensitive: variable.sensitive || false,
+          encrypted: false,
+          branch: variable.branch || "main",
+          createdAt: now,
+          updatedAt: now
+        };
+        dbData2.variables = dbData2.variables || [];
+        const existingIndex = dbData2.variables.findIndex((v) => v.name === variable.name);
+        if (existingIndex >= 0) {
+          dbData2.variables[existingIndex] = { ...dbData2.variables[existingIndex], ...newVariable, updatedAt: now };
+        } else {
+          dbData2.variables.push(newVariable);
+        }
+        dbData2.history = dbData2.history || [];
+        dbData2.history.push({
+          id: crypto.randomUUID(),
+          action: existingIndex >= 0 ? "update" : "create",
+          variableName: variable.name,
+          newValue: variable.value,
+          timestamp: now
+        });
+        await database.saveData();
+        result = newVariable;
+      } else {
+        throw setError;
+      }
+    }
     const hotReloadSettings = database.getHotReloadSettings();
     if (hotReloadSettings.enabled && hotReloadSettings.autoReload) {
       const manager = getHotReloadManager(hotReloadSettings);
@@ -97,9 +144,10 @@ const PUT = async ({ request }) => {
     });
   }
 };
-const DELETE = async ({ request }) => {
+const DELETE = async ({ request, url }) => {
   try {
-    const database = getDatabase();
+    const projectPath = url.searchParams.get("projectPath");
+    const database = getDatabase(projectPath || void 0);
     if (!database.isAuthenticated()) {
       return new Response(JSON.stringify({ error: "Not authenticated" }), {
         status: 401,

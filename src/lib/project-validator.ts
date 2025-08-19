@@ -20,7 +20,7 @@ export default class ProjectValidator {
     this.projectConfig = config
   }
 
-  async validateProjectRequirements(): Promise<ValidationResults> {
+  async validateProjectRequirements(branch?: string): Promise<ValidationResults> {
     if (!this.projectConfig) {
       throw new Error('Project configuration not loaded')
     }
@@ -34,8 +34,8 @@ export default class ProjectValidator {
       canStart: false
     }
 
-    // Get current variables from database
-    const currentVariables = this.db.getAllVariables()
+    // Get current variables from database with the specified branch
+    const currentVariables = this.db.getAllVariables(branch)
     const variableMap = new Map(currentVariables.map(v => [v.name, v]))
 
     // Validate each requirement group
@@ -57,7 +57,10 @@ export default class ProjectValidator {
           configured: !!currentVar,
           hasValue: !!(currentVar && currentVar.value),
           valid: true,
-          errors: []
+          errors: [],
+          sensitive: varConfig.sensitive,
+          type: varConfig.name.startsWith('NEXT_PUBLIC_') ? 'client' : 'server',
+          description: varConfig.description
         }
 
         // Check if variable exists and has value
@@ -75,7 +78,7 @@ export default class ProjectValidator {
           results.missing.push(varConfig.name)
         } else {
           // Validate value format if validation rules exist
-          if (varConfig.validation && !varConfig.validation.test(currentVar.value)) {
+          if (varConfig.validation && typeof varConfig.validation.test === 'function' && !varConfig.validation.test(currentVar.value)) {
             varResult.valid = false
             varResult.errors.push('Value format invalid')
             groupResult.invalid.push(varConfig.name)

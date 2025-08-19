@@ -1,29 +1,38 @@
-import { g as getDatabase, E as EnvDatabase } from '../../chunks/session_AwEyVFTC.mjs';
+import { g as getDatabase, E as EnvDatabase } from '../../chunks/session_CMQvN_Ad.mjs';
 import fs from 'fs/promises';
 import path from 'path';
 export { renderers } from '../../renderers.mjs';
 
-async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+const POST = async ({ request }) => {
   try {
     const db = getDatabase();
     if (!db.isAuthenticated()) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" }
+      });
     }
-    const { type, password } = req.body;
+    const { type, password } = await request.json();
     if (!type || !["env", "env-example"].includes(type)) {
-      return res.status(400).json({ error: 'Invalid export type. Must be "env" or "env-example"' });
+      return new Response(JSON.stringify({ error: 'Invalid export type. Must be "env" or "env-example"' }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      });
     }
     if (type === "env") {
       if (!password) {
-        return res.status(400).json({ error: "Password confirmation required for .env export" });
+        return new Response(JSON.stringify({ error: "Password confirmation required for .env export" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" }
+        });
       }
       const testDb = new EnvDatabase();
       const isPasswordValid = testDb.authenticate(password);
       if (!isPasswordValid) {
-        return res.status(401).json({ error: "Invalid password" });
+        return new Response(JSON.stringify({ error: "Invalid password" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" }
+        });
       }
     }
     const variables = db.getAllVariables();
@@ -49,16 +58,22 @@ async function handler(req, res) {
     const projectRoot = process.env.PROJECT_ROOT || path.resolve(process.cwd(), "..");
     const filePath = path.join(projectRoot, filename);
     await fs.writeFile(filePath, content, "utf-8");
-    res.status(200).json({
+    return new Response(JSON.stringify({
       success: true,
       message: `${filename} has been created in your project root`,
       path: filePath
+    }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
     });
   } catch (error) {
     console.error("Export error:", error);
-    res.status(500).json({ error: "Failed to export file" });
+    return new Response(JSON.stringify({ error: "Failed to export file" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
   }
-}
+};
 function generateEnvExample(variables) {
   const categories = groupVariablesByCategory(variables);
   let content = "";
@@ -143,7 +158,7 @@ function generateExampleValue(variable) {
 
 const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
-  default: handler
+  POST
 }, Symbol.toStringTag, { value: 'Module' }));
 
 const page = () => _page;

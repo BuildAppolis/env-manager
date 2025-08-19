@@ -1,35 +1,9 @@
 ---
 import Layout8Bit from '../layouts/Layout8Bit.astro'
-import EnvManager8Bit from '../components/EnvManager8Bit'
+import MainApp from '../components/MainApp'
 import '../styles/global.css'
-import { getGitUtils } from '../lib/git-utils.js'
-import path from 'path'
-import fs from 'fs'
-
-// Get project information
-const projectRoot = process.env.PROJECT_ROOT || path.resolve(process.cwd(), '..')
-let projectName = null
-let gitBranch = null
-
-try {
-  // Get project name from package.json
-  const packageJsonPath = path.join(projectRoot, 'package.json')
-  if (fs.existsSync(packageJsonPath)) {
-    const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
-    projectName = pkg.name || path.basename(projectRoot)
-  } else {
-    projectName = path.basename(projectRoot)
-  }
-  
-  // Get git branch
-  const gitUtils = getGitUtils(projectRoot)
-  const gitInfo = await gitUtils.getGitInfo()
-  gitBranch = gitInfo.branch || null
-} catch (error) {
-  console.error('Error getting project info:', error)
-}
 ---
 
-<Layout8Bit projectName={projectName} gitBranch={gitBranch}>
-  <EnvManager8Bit client:load />
+<Layout8Bit projectName="Env Manager" gitBranch={null}>
+  <MainApp client:load />
 </Layout8Bit>

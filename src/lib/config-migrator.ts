@@ -64,14 +64,19 @@ export class ConfigMigrator {
     try {
       // Check if it's a TypeScript file
       if (configPath.endsWith('.ts')) {
-        // Use jiti for TypeScript support
+        // Use jiti for TypeScript support with cache disabled
         const { createJiti } = await import('jiti')
-        const jiti = createJiti(import.meta.url, { interopDefault: true })
+        const jiti = createJiti(import.meta.url, { 
+          interopDefault: true,
+          cache: false,
+          requireCache: false
+        })
         const configModule = await jiti.import(configPath)
         config = (configModule as any).default || configModule
       } else {
-        // Load JavaScript file directly
-        const configModule = await import(/* @vite-ignore */ configPath)
+        // Load JavaScript file directly with cache busting
+        const cacheBuster = `?t=${Date.now()}`
+        const configModule = await import(/* @vite-ignore */ configPath + cacheBuster)
         config = configModule.default || configModule
       }
     } catch (error) {
@@ -101,8 +106,20 @@ export class ConfigMigrator {
     }
 
     if (applied) {
-      // Save backup of original config
-      const backupPath = configPath.replace('.ts', `.backup.${Date.now()}.ts`)
+      // Update the config version to the latest
+      migratedConfig.version = latestVersion
+      
+      // Save backup of original config to .env-manager/backups directory
+      const projectDir = path.dirname(configPath)
+      const backupDir = path.join(projectDir, '.env-manager', 'backups')
+      
+      // Ensure backup directory exists
+      if (!fs.existsSync(backupDir)) {
+        fs.mkdirSync(backupDir, { recursive: true })
+      }
+      
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+      const backupPath = path.join(backupDir, `env.config.v${currentVersion}.${timestamp}.ts`)
       const originalContent = fs.readFileSync(configPath, 'utf-8')
       fs.writeFileSync(backupPath, originalContent)
       
@@ -129,10 +146,18 @@ export class ConfigMigrator {
   }
 
   private saveConfig(configPath: string, config: any): void {
-    const configContent = `// Auto-migrated env.config.ts - Version ${config.version}
-export default ${JSON.stringify(config, null, 2).replace(/"([^"]+)":/g, '$1:').replace(/"/g, "'")}
-`
-    fs.writeFileSync(configPath, configContent)
+    // Read the original file to preserve formatting and comments
+    const originalContent = fs.readFileSync(configPath, 'utf-8')
+    
+    // Update only the version line in the original content
+    const versionRegex = /version:\s*['"]([^'"]+)['"]/
+    const updatedContent = originalContent.replace(versionRegex, `version: '${config.version}'`)
+    
+    // Update the header comment if it exists
+    const headerRegex = /\/\/ Auto-migrated env\.config\.ts - Version [^\n]*/
+    const finalContent = updatedContent.replace(headerRegex, `// Auto-migrated env.config.ts - Version ${config.version}`)
+    
+    fs.writeFileSync(configPath, finalContent)
   }
 }
 
@@ -232,14 +257,15 @@ export class BranchAwareConfigLoader {
     const merged = { ...base }
     
     for (const [key, value] of Object.entries(branch)) {
-      if (merged[key] && typeof value === 'object') {
+      if (merged[key] && typeof value === 'object' && value !== null) {
         // Merge group
+        const typedValue = value as any
         merged[key] = {
           ...merged[key],
-          ...value,
+          ...typedValue,
           variables: [
             ...(merged[key].variables || []),
-            ...(value.variables || [])
+            ...(typedValue.variables || [])
           ]
         }
       } else {
@@ -254,10 +280,11 @@ export class BranchAwareConfigLoader {
     const inherited = { ...base }
     
     for (const [key, value] of Object.entries(branch)) {
-      if (inherited[key] && typeof value === 'object') {
+      if (inherited[key] && typeof value === 'object' && value !== null) {
         // Override specific variables
+        const typedValue = value as any
         const baseVars = inherited[key].variables || []
-        const branchVars = value.variables || []
+        const branchVars = typedValue.variables || []
         
         const varMap = new Map()
         baseVars.forEach((v: any) => varMap.set(v.name, v))
