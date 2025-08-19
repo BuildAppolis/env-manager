@@ -7,12 +7,8 @@ export const GET: APIRoute = async () => {
   try {
     const database = getDatabase();
     
-    if (!database.isAuthenticated()) {
-      return new Response(JSON.stringify({ error: 'Not authenticated' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
+    // Status endpoint is public for validation purposes
+    // It doesn't expose sensitive variable values, only validation status
 
     // Load project config from root directory
     const projectRoot = path.resolve(process.cwd(), '..');

@@ -38,22 +38,56 @@ See [LICENSE](LICENSE) for full terms.
 
 ## 🚀 Quick Start
 
-### As a Standalone Service
+### Install Globally (Recommended)
 
 ```bash
-# Clone the repository
-git clone https://github.com/buildappolis/env-manager.git
-cd env-manager
+# Install env-manager globally
+npm install -g @buildappolis/env-manager
 
-# Install dependencies
-pnpm install
+# Now you can use env-manager command directly!
+env-manager init
 
-# Configure
-cp .env.example .env
-# Edit .env with your settings
+# This will:
+# 1. Create env.config.ts template
+# 2. Set up your password securely
+# 3. Configure .env settings
 
 # Start the service
-pnpm start
+env-manager start
+
+# Open the UI
+env-manager open
+```
+
+### Alternative: Use NPX (No Install)
+
+```bash
+# Run without installing
+npx @buildappolis/env-manager init
+```
+
+### CLI Commands
+
+Once installed globally, you can use these commands:
+
+```bash
+# Initialize project with env-manager
+env-manager init
+
+# Set or change password
+env-manager setup-password
+
+# Start the service
+env-manager start
+
+# Check service status
+env-manager status
+
+# Open UI in browser
+env-manager open
+
+# Show help
+env-manager --help
 ```
 
 Access the UI at `http://localhost:3001`

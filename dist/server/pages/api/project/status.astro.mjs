@@ -167,12 +167,6 @@ class ProjectValidator {
 const GET = async () => {
   try {
     const database = getDatabase();
-    if (!database.isAuthenticated()) {
-      return new Response(JSON.stringify({ error: "Not authenticated" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" }
-      });
-    }
     const projectRoot = path.resolve(process.cwd(), "..");
     const configPath = path.join(projectRoot, "env.config.ts");
     try {

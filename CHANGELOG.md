@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2025-08-19
+
+### Added
+- 🎮 Complete 8-bit retro gaming UI theme using 8bitcn-ui components
+- 🎨 React-based interactive components with shadcn/ui integration
+- 🔒 Custom lock-themed favicon with gradient design
+- 📱 Responsive 8-bit styled interface with CRT monitor effects
+- ⚡ Tailwind CSS v4 with Vite plugin for improved performance
+- 🎵 Sound effect placeholders for user interactions
+- 🏷️ Dynamic page titles with project name support
+- 🖼️ Animated retro grid background with scanline effects
+- 🎯 Press Start 2P font for authentic pixel-art typography
+
+### Changed
+- Migrated from Astro components to React components for better interactivity
+- Updated to Tailwind CSS v4 with modern CSS-based configuration
+- Redesigned entire UI with 8-bit gaming aesthetic
+- Improved CLI commands for simpler usage (env-manager instead of npx)
+- Enhanced page title structure: [Project] | Env Manager | BuildAppolis
+
+### Fixed
+- Astro build configuration for Tailwind v4 compatibility
+- TypeScript configuration for React JSX support
+- Path aliases for proper module resolution
+
+## [1.0.5] - 2025-08-18
+
+### Added
+- 
+
+### Changed
+- 
+
+### Fixed
+- 
+
 ## [1.0.4] - 2025-08-18
 
 ### Added
@@ -79,7 +115,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Password-based authentication for access control
 - Secure export with password confirmation
 
-[Unreleased]: https://github.com/buildappolis/env-manager/compare/v1.0.4...HEAD
+[Unreleased]: https://github.com/buildappolis/env-manager/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/buildappolis/env-manager/compare/v1.0.5...v1.1.0
+[1.0.5]: https://github.com/buildappolis/env-manager/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/buildappolis/env-manager/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/buildappolis/env-manager/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/buildappolis/env-manager/compare/v1.0.1...v1.0.2

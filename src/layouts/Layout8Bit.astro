@@ -1,0 +1,83 @@
+---
+export interface Props {
+  projectName?: string
+}
+
+const { projectName } = Astro.props
+const title = projectName 
+  ? `${projectName} | Env Manager | BuildAppolis`
+  : 'Env Manager | BuildAppolis'
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Env Manager - 8-bit themed environment management" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+  </head>
+  <body class="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-cyan-900">
+    <div class="relative min-h-screen">
+      <!-- Animated retro grid background -->
+      <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute inset-0 bg-[linear-gradient(transparent_63%,rgba(255,0,255,0.1)_64%,rgba(255,0,255,0.1)_65%,transparent_66%),linear-gradient(90deg,transparent_63%,rgba(0,255,255,0.1)_64%,rgba(0,255,255,0.1)_65%,transparent_66%)] bg-[length:50px_50px] animate-pulse"></div>
+      </div>
+      
+      <!-- Main content -->
+      <div class="relative z-10">
+        <slot />
+      </div>
+    </div>
+  </body>
+</html>
+
+<style is:global>
+  @import "../styles/global.css";
+  
+  /* Add retro font */
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+  
+  body {
+    font-family: 'Press Start 2P', monospace;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+  }
+  
+  /* Scanline effect */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      transparent 50%,
+      rgba(0, 0, 0, 0.05) 50%
+    );
+    background-size: 100% 4px;
+    pointer-events: none;
+    z-index: 9999;
+  }
+  
+  /* CRT curve effect */
+  body::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(
+      ellipse at center,
+      transparent 0%,
+      transparent 40%,
+      rgba(0, 0, 0, 0.1) 100%
+    );
+    pointer-events: none;
+    z-index: 9998;
+  }
+</style>
