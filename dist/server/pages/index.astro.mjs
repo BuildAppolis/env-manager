@@ -8,15 +8,22 @@ import { twMerge } from 'tailwind-merge';
 import { Slot } from '@radix-ui/react-slot';
 import * as LabelPrimitive from '@radix-ui/react-label';
 import * as SelectPrimitive from '@radix-ui/react-select';
-import { ChevronDownIcon, CheckIcon, ChevronUpIcon, Unlock, Database, Key, Save, Terminal, Download, Upload, RefreshCw, Lock } from 'lucide-react';
+import { ChevronDownIcon, CheckIcon, ChevronUpIcon, FolderOpen, RefreshCw, Key, GitBranch, Lock, Square, Play, Trash2, Unlock, Database, Save, Terminal, Download, Upload } from 'lucide-react';
+import { g as getGitUtils } from '../chunks/git-utils_B6WJYd3b.mjs';
+import path from 'path';
+import fs from 'fs';
 export { renderers } from '../renderers.mjs';
 
 const $$Astro = createAstro();
 const $$Layout8Bit = createComponent(($$result, $$props, $$slots) => {
   const Astro2 = $$result.createAstro($$Astro, $$props, $$slots);
   Astro2.self = $$Layout8Bit;
-  const { projectName } = Astro2.props;
-  const title = projectName ? `${projectName} | Env Manager | BuildAppolis` : "Env Manager | BuildAppolis";
+  const { projectName, gitBranch } = Astro2.props;
+  let title = "Env Manager | BuildAppolis";
+  if (projectName) {
+    const branchPart = gitBranch ? `[${gitBranch}]` : "";
+    title = `${projectName}${branchPart} | Env Manager | BuildAppolis`;
+  }
   return renderTemplate`<html lang="en"> <head><meta charset="UTF-8"><meta name="description" content="Env Manager - 8-bit themed environment management"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><title>${title}</title>${renderHead()}</head> <body class="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-cyan-900"> <div class="relative min-h-screen"> <!-- Animated retro grid background --> <div class="fixed inset-0 overflow-hidden pointer-events-none"> <div class="absolute inset-0 bg-[linear-gradient(transparent_63%,rgba(255,0,255,0.1)_64%,rgba(255,0,255,0.1)_65%,transparent_66%),linear-gradient(90deg,transparent_63%,rgba(0,255,255,0.1)_64%,rgba(0,255,255,0.1)_65%,transparent_66%)] bg-[length:50px_50px] animate-pulse"></div> </div> <!-- Main content --> <div class="relative z-10"> ${renderSlot($$result, $$slots["default"])} </div> </div> </body></html>`;
 }, "/home/cory-ubuntu/coding/projects/env-manager/src/layouts/Layout8Bit.astro", void 0);
 
@@ -622,6 +629,448 @@ function SelectItem({
   );
 }
 
+function ProjectSelector({ onProjectSelect }) {
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordMode, setPasswordMode] = useState("setup");
+  const [passwordForm, setPasswordForm] = useState({
+    password: "",
+    newPassword: "",
+    confirmPassword: "",
+    recoveryPhrase: "",
+    projectPassword: ""
+  });
+  const [passwordError, setPasswordError] = useState("");
+  const [recoveryPhrase, setRecoveryPhrase] = useState("");
+  const [hasGlobalPassword, setHasGlobalPassword] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  useEffect(() => {
+    loadProjects();
+    checkPasswordStatus();
+  }, []);
+  const loadProjects = async () => {
+    try {
+      const response = await fetch("/api/projects");
+      const data = await response.json();
+      setProjects(data.projects || []);
+    } catch (error) {
+      console.error("Failed to load projects:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const checkPasswordStatus = async () => {
+    try {
+      const response = await fetch("/api/password");
+      const data = await response.json();
+      setHasGlobalPassword(data.hasGlobalPassword);
+      if (!data.hasGlobalPassword) {
+        setPasswordMode("setup");
+        setShowPasswordModal(true);
+      }
+    } catch (error) {
+      console.error("Failed to check password status:", error);
+    }
+  };
+  const handleProjectSelect = async (project) => {
+    setSelectedProject(project);
+    if (hasGlobalPassword || project.hasProjectPassword) {
+      setPasswordMode("verify");
+      setShowPasswordModal(true);
+    } else {
+      if (onProjectSelect) {
+        onProjectSelect(project);
+      }
+    }
+  };
+  const handlePasswordSubmit = async () => {
+    setPasswordError("");
+    try {
+      if (passwordMode === "setup") {
+        if (passwordForm.password !== passwordForm.confirmPassword) {
+          setPasswordError("Passwords do not match");
+          return;
+        }
+        const response = await fetch("/api/password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "setup",
+            password: passwordForm.password
+          })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          setPasswordError(data.error);
+          return;
+        }
+        setRecoveryPhrase(data.recoveryPhrase);
+        setHasGlobalPassword(true);
+        alert(`Password set! Your recovery phrase is:
+
+${data.recoveryPhrase}
+
+SAVE THIS PHRASE! You'll need it to recover your password.`);
+        setShowPasswordModal(false);
+        resetPasswordForm();
+      }
+      if (passwordMode === "verify") {
+        const response = await fetch("/api/password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "verify",
+            password: passwordForm.password,
+            projectPath: selectedProject?.path
+          })
+        });
+        const data = await response.json();
+        if (!response.ok || !data.valid) {
+          setPasswordError("Invalid password");
+          return;
+        }
+        if (data.requiresProjectPassword && !data.projectValid) {
+          setPasswordError("Project password required");
+          return;
+        }
+        setShowPasswordModal(false);
+        resetPasswordForm();
+        if (selectedProject && onProjectSelect) {
+          onProjectSelect(selectedProject);
+        }
+      }
+      if (passwordMode === "change") {
+        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+          setPasswordError("New passwords do not match");
+          return;
+        }
+        const response = await fetch("/api/password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "change",
+            password: passwordForm.password,
+            newPassword: passwordForm.newPassword
+          })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          setPasswordError(data.error);
+          return;
+        }
+        setRecoveryPhrase(data.recoveryPhrase);
+        alert(`Password changed! Your new recovery phrase is:
+
+${data.recoveryPhrase}
+
+SAVE THIS PHRASE!`);
+        setShowPasswordModal(false);
+        resetPasswordForm();
+      }
+      if (passwordMode === "recover") {
+        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+          setPasswordError("New passwords do not match");
+          return;
+        }
+        const response = await fetch("/api/password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "recover",
+            recoveryPhrase: passwordForm.recoveryPhrase,
+            newPassword: passwordForm.newPassword
+          })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          setPasswordError(data.error);
+          return;
+        }
+        setRecoveryPhrase(data.recoveryPhrase);
+        alert(`Password recovered! Your new recovery phrase is:
+
+${data.recoveryPhrase}
+
+SAVE THIS PHRASE!`);
+        setShowPasswordModal(false);
+        resetPasswordForm();
+      }
+    } catch (error) {
+      setPasswordError("Operation failed. Please try again.");
+    }
+  };
+  const handleProjectAction = async (project, action) => {
+    try {
+      const response = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action,
+          projectPath: project.path,
+          port: project.port
+        })
+      });
+      if (response.ok) {
+        await loadProjects();
+      }
+    } catch (error) {
+      console.error(`Failed to ${action} project:`, error);
+    }
+  };
+  const resetPasswordForm = () => {
+    setPasswordForm({
+      password: "",
+      newPassword: "",
+      confirmPassword: "",
+      recoveryPhrase: "",
+      projectPassword: ""
+    });
+    setPasswordError("");
+  };
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadProjects();
+    setTimeout(() => setRefreshing(false), 500);
+  };
+  if (loading) {
+    return /* @__PURE__ */ jsx("div", { className: "flex items-center justify-center p-8", children: /* @__PURE__ */ jsx("div", { className: "animate-pulse text-yellow-400", children: "Loading projects..." }) });
+  }
+  return /* @__PURE__ */ jsxs("div", { className: "pixel-borders bg-gray-900 p-6 rounded-lg", children: [
+    /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between mb-6", children: [
+      /* @__PURE__ */ jsxs("h2", { className: "text-xl text-yellow-400 flex items-center gap-2", children: [
+        /* @__PURE__ */ jsx(FolderOpen, { className: "w-6 h-6" }),
+        "Projects"
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "flex gap-2", children: [
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            onClick: handleRefresh,
+            className: `pixel-button bg-blue-600 hover:bg-blue-700 text-white p-2 ${refreshing ? "animate-spin" : ""}`,
+            title: "Refresh",
+            children: /* @__PURE__ */ jsx(RefreshCw, { className: "w-4 h-4" })
+          }
+        ),
+        hasGlobalPassword && /* @__PURE__ */ jsxs(
+          "button",
+          {
+            onClick: () => {
+              setPasswordMode("change");
+              setShowPasswordModal(true);
+            },
+            className: "pixel-button bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 flex items-center gap-2",
+            children: [
+              /* @__PURE__ */ jsx(Key, { className: "w-4 h-4" }),
+              "Change Password"
+            ]
+          }
+        )
+      ] })
+    ] }),
+    projects.length === 0 ? /* @__PURE__ */ jsxs("div", { className: "text-center py-8 text-gray-400", children: [
+      /* @__PURE__ */ jsx("p", { className: "mb-2", children: "No projects found" }),
+      /* @__PURE__ */ jsx("p", { className: "text-sm", children: 'Run "env-manager init" in a project directory to get started' })
+    ] }) : /* @__PURE__ */ jsx("div", { className: "grid gap-4", children: projects.map((project) => /* @__PURE__ */ jsx(
+      "div",
+      {
+        className: `pixel-borders bg-gray-800 p-4 rounded-lg transition-all hover:bg-gray-700 ${project.isActive ? "ring-2 ring-yellow-400" : ""}`,
+        children: /* @__PURE__ */ jsxs("div", { className: "flex items-start justify-between", children: [
+          /* @__PURE__ */ jsxs("div", { className: "flex-1", children: [
+            /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-3 mb-2", children: [
+              /* @__PURE__ */ jsx("h3", { className: "text-lg text-cyan-400", children: project.packageInfo?.name || project.name }),
+              project.isRunning && /* @__PURE__ */ jsxs("span", { className: "flex items-center gap-1 text-green-400 text-xs", children: [
+                /* @__PURE__ */ jsx("span", { className: "w-2 h-2 bg-green-400 rounded-full animate-pulse" }),
+                "LIVE"
+              ] }),
+              project.gitBranch && /* @__PURE__ */ jsxs("span", { className: "flex items-center gap-1 text-purple-400 text-xs", children: [
+                /* @__PURE__ */ jsx(GitBranch, { className: "w-3 h-3" }),
+                project.gitBranch
+              ] }),
+              project.hasProjectPassword && /* @__PURE__ */ jsx(Lock, { className: "w-4 h-4 text-yellow-400", title: "Project password protected" })
+            ] }),
+            /* @__PURE__ */ jsxs("div", { className: "text-xs text-gray-400 space-y-1", children: [
+              project.packageInfo?.version && /* @__PURE__ */ jsxs("p", { children: [
+                "Version: ",
+                project.packageInfo.version
+              ] }),
+              /* @__PURE__ */ jsxs("p", { className: "truncate", title: `Full path: ${project.path}`, children: [
+                "Path: ",
+                project.path
+              ] }),
+              /* @__PURE__ */ jsxs("p", { children: [
+                "Port: ",
+                project.port
+              ] }),
+              /* @__PURE__ */ jsxs("p", { children: [
+                "Last accessed: ",
+                new Date(project.lastAccessed).toLocaleDateString()
+              ] })
+            ] })
+          ] }),
+          /* @__PURE__ */ jsx("div", { className: "flex gap-2", children: project.exists ? /* @__PURE__ */ jsxs(Fragment, { children: [
+            /* @__PURE__ */ jsx(
+              "button",
+              {
+                onClick: () => handleProjectSelect(project),
+                className: "pixel-button bg-green-600 hover:bg-green-700 text-white p-2",
+                title: "Open project",
+                children: /* @__PURE__ */ jsx(FolderOpen, { className: "w-4 h-4" })
+              }
+            ),
+            project.isRunning ? /* @__PURE__ */ jsx(
+              "button",
+              {
+                onClick: () => handleProjectAction(project, "stop"),
+                className: "pixel-button bg-red-600 hover:bg-red-700 text-white p-2",
+                title: "Stop project",
+                children: /* @__PURE__ */ jsx(Square, { className: "w-4 h-4" })
+              }
+            ) : /* @__PURE__ */ jsx(
+              "button",
+              {
+                onClick: () => handleProjectAction(project, "start"),
+                className: "pixel-button bg-blue-600 hover:bg-blue-700 text-white p-2",
+                title: "Start project",
+                children: /* @__PURE__ */ jsx(Play, { className: "w-4 h-4" })
+              }
+            )
+          ] }) : /* @__PURE__ */ jsx(
+            "button",
+            {
+              onClick: () => handleProjectAction(project, "remove"),
+              className: "pixel-button bg-red-600 hover:bg-red-700 text-white p-2",
+              title: "Remove from list (project not found)",
+              children: /* @__PURE__ */ jsx(Trash2, { className: "w-4 h-4" })
+            }
+          ) })
+        ] })
+      },
+      project.id
+    )) }),
+    showPasswordModal && /* @__PURE__ */ jsx("div", { className: "fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4", children: /* @__PURE__ */ jsxs("div", { className: "pixel-borders bg-gray-900 p-6 rounded-lg max-w-md w-full", children: [
+      /* @__PURE__ */ jsxs("h3", { className: "text-xl text-yellow-400 mb-4", children: [
+        passwordMode === "setup" && "🔐 Setup Master Password",
+        passwordMode === "verify" && "🔓 Enter Password",
+        passwordMode === "change" && "🔄 Change Password",
+        passwordMode === "recover" && "🔑 Recover Password"
+      ] }),
+      passwordError && /* @__PURE__ */ jsx("div", { className: "mb-4 p-2 bg-red-900 border border-red-400 rounded text-red-300 text-sm", children: passwordError }),
+      /* @__PURE__ */ jsxs("div", { className: "space-y-4", children: [
+        passwordMode === "recover" ? /* @__PURE__ */ jsx(Fragment, { children: /* @__PURE__ */ jsxs("div", { children: [
+          /* @__PURE__ */ jsx("label", { className: "block text-cyan-400 text-sm mb-1", children: "Recovery Phrase" }),
+          /* @__PURE__ */ jsx(
+            "input",
+            {
+              type: "text",
+              value: passwordForm.recoveryPhrase,
+              onChange: (e) => setPasswordForm({ ...passwordForm, recoveryPhrase: e.target.value }),
+              className: "pixel-input w-full bg-gray-800 text-white p-2 rounded",
+              placeholder: "Enter your recovery phrase"
+            }
+          )
+        ] }) }) : /* @__PURE__ */ jsx(Fragment, { children: (passwordMode === "verify" || passwordMode === "change") && /* @__PURE__ */ jsxs("div", { children: [
+          /* @__PURE__ */ jsx("label", { className: "block text-cyan-400 text-sm mb-1", children: passwordMode === "change" ? "Current Password" : "Password" }),
+          /* @__PURE__ */ jsx(
+            "input",
+            {
+              type: "password",
+              value: passwordForm.password,
+              onChange: (e) => setPasswordForm({ ...passwordForm, password: e.target.value }),
+              className: "pixel-input w-full bg-gray-800 text-white p-2 rounded",
+              placeholder: "Enter password"
+            }
+          )
+        ] }) }),
+        (passwordMode === "setup" || passwordMode === "change" || passwordMode === "recover") && /* @__PURE__ */ jsxs(Fragment, { children: [
+          /* @__PURE__ */ jsxs("div", { children: [
+            /* @__PURE__ */ jsx("label", { className: "block text-cyan-400 text-sm mb-1", children: passwordMode === "setup" ? "Password" : "New Password" }),
+            /* @__PURE__ */ jsx(
+              "input",
+              {
+                type: "password",
+                value: passwordMode === "setup" ? passwordForm.password : passwordForm.newPassword,
+                onChange: (e) => setPasswordForm({
+                  ...passwordForm,
+                  [passwordMode === "setup" ? "password" : "newPassword"]: e.target.value
+                }),
+                className: "pixel-input w-full bg-gray-800 text-white p-2 rounded",
+                placeholder: "Enter new password (min 6 chars)"
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxs("div", { children: [
+            /* @__PURE__ */ jsx("label", { className: "block text-cyan-400 text-sm mb-1", children: "Confirm Password" }),
+            /* @__PURE__ */ jsx(
+              "input",
+              {
+                type: "password",
+                value: passwordForm.confirmPassword,
+                onChange: (e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value }),
+                className: "pixel-input w-full bg-gray-800 text-white p-2 rounded",
+                placeholder: "Confirm password"
+              }
+            )
+          ] })
+        ] }),
+        selectedProject?.hasProjectPassword && passwordMode === "verify" && /* @__PURE__ */ jsxs("div", { children: [
+          /* @__PURE__ */ jsx("label", { className: "block text-cyan-400 text-sm mb-1", children: "Project Password (if different)" }),
+          /* @__PURE__ */ jsx(
+            "input",
+            {
+              type: "password",
+              value: passwordForm.projectPassword,
+              onChange: (e) => setPasswordForm({ ...passwordForm, projectPassword: e.target.value }),
+              className: "pixel-input w-full bg-gray-800 text-white p-2 rounded",
+              placeholder: "Enter project-specific password"
+            }
+          )
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "flex justify-between items-center mt-6", children: [
+        passwordMode === "verify" && /* @__PURE__ */ jsx(
+          "button",
+          {
+            onClick: () => {
+              setPasswordMode("recover");
+              resetPasswordForm();
+            },
+            className: "text-purple-400 hover:text-purple-300 text-sm",
+            children: "Forgot password?"
+          }
+        ),
+        /* @__PURE__ */ jsxs("div", { className: "flex gap-2 ml-auto", children: [
+          passwordMode !== "setup" && /* @__PURE__ */ jsx(
+            "button",
+            {
+              onClick: () => {
+                setShowPasswordModal(false);
+                resetPasswordForm();
+              },
+              className: "pixel-button bg-gray-600 hover:bg-gray-700 text-white px-4 py-2",
+              children: "Cancel"
+            }
+          ),
+          /* @__PURE__ */ jsxs(
+            "button",
+            {
+              onClick: handlePasswordSubmit,
+              className: "pixel-button bg-green-600 hover:bg-green-700 text-white px-4 py-2",
+              children: [
+                passwordMode === "setup" && "Setup Password",
+                passwordMode === "verify" && "Unlock",
+                passwordMode === "change" && "Change Password",
+                passwordMode === "recover" && "Reset Password"
+              ]
+            }
+          )
+        ] })
+      ] })
+    ] }) })
+  ] });
+}
+
 function EnvManager8Bit() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
@@ -631,6 +1080,8 @@ function EnvManager8Bit() {
   const [newVar, setNewVar] = useState({ name: "", value: "", encrypted: false, description: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showProjectSelector, setShowProjectSelector] = useState(false);
+  const [currentProject, setCurrentProject] = useState(null);
   useEffect(() => {
     checkAuthStatus();
   }, []);
@@ -782,9 +1233,33 @@ function EnvManager8Bit() {
         "LEVEL: ",
         selectedEnv.toUpperCase(),
         " | VARIABLES: ",
-        variables.length
-      ] })
+        variables.length,
+        currentProject && ` | PROJECT: ${currentProject.name}`
+      ] }),
+      /* @__PURE__ */ jsxs(
+        Button,
+        {
+          onClick: () => setShowProjectSelector(!showProjectSelector),
+          className: "mt-4",
+          variant: "outline",
+          children: [
+            /* @__PURE__ */ jsx(FolderOpen, { className: "mr-2 h-4 w-4" }),
+            currentProject ? "SWITCH PROJECT" : "SELECT PROJECT"
+          ]
+        }
+      )
     ] }),
+    showProjectSelector && /* @__PURE__ */ jsx("div", { className: "mb-6", children: /* @__PURE__ */ jsx(
+      ProjectSelector,
+      {
+        onProjectSelect: (project) => {
+          setCurrentProject(project);
+          setShowProjectSelector(false);
+          loadVariables(selectedEnv);
+          playSound();
+        }
+      }
+    ) }),
     /* @__PURE__ */ jsxs(Card, { className: "mb-6 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]", children: [
       /* @__PURE__ */ jsx(CardHeader, { children: /* @__PURE__ */ jsxs(CardTitle, { className: "flex items-center gap-2", children: [
         /* @__PURE__ */ jsx(Database, { className: "h-5 w-5" }),
@@ -923,9 +1398,25 @@ function EnvManager8Bit() {
   ] });
 }
 
-const $$Index = createComponent(($$result, $$props, $$slots) => {
-  const projectName = null;
-  return renderTemplate`${renderComponent($$result, "Layout8Bit", $$Layout8Bit, { "projectName": projectName }, { "default": ($$result2) => renderTemplate` ${renderComponent($$result2, "EnvManager8Bit", EnvManager8Bit, { "client:load": true, "client:component-hydration": "load", "client:component-path": "/home/cory-ubuntu/coding/projects/env-manager/src/components/EnvManager8Bit", "client:component-export": "default" })} ` })}`;
+const $$Index = createComponent(async ($$result, $$props, $$slots) => {
+  const projectRoot = process.env.PROJECT_ROOT || path.resolve(process.cwd(), "..");
+  let projectName = null;
+  let gitBranch = null;
+  try {
+    const packageJsonPath = path.join(projectRoot, "package.json");
+    if (fs.existsSync(packageJsonPath)) {
+      const pkg = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
+      projectName = pkg.name || path.basename(projectRoot);
+    } else {
+      projectName = path.basename(projectRoot);
+    }
+    const gitUtils = getGitUtils(projectRoot);
+    const gitInfo = await gitUtils.getGitInfo();
+    gitBranch = gitInfo.branch || null;
+  } catch (error) {
+    console.error("Error getting project info:", error);
+  }
+  return renderTemplate`${renderComponent($$result, "Layout8Bit", $$Layout8Bit, { "projectName": projectName, "gitBranch": gitBranch }, { "default": async ($$result2) => renderTemplate` ${renderComponent($$result2, "EnvManager8Bit", EnvManager8Bit, { "client:load": true, "client:component-hydration": "load", "client:component-path": "/home/cory-ubuntu/coding/projects/env-manager/src/components/EnvManager8Bit", "client:component-export": "default" })} ` })}`;
 }, "/home/cory-ubuntu/coding/projects/env-manager/src/pages/index.astro", void 0);
 
 const $$file = "/home/cory-ubuntu/coding/projects/env-manager/src/pages/index.astro";

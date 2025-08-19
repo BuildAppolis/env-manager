@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2025-08-19
+
+### Added
+- 🎯 **Project Selector UI** - Visual project management interface
+  - Live status indicators showing running/stopped projects
+  - Git branch display for each project
+  - Start/stop/remove project controls
+  - Project metadata display (version, description)
+- 🔐 **Web-Based Password Management** - Complete password UI
+  - First-time setup wizard via web interface
+  - Password recovery with recovery phrases
+  - Change password functionality
+  - Project-specific password support
+- 📡 **Project Management API** - RESTful endpoints for project control
+  - `/api/projects` - List and manage projects
+  - `/api/password` - Password operations (setup, verify, change, recover)
+  - Project status checking and control
+- 🎨 **Enhanced UI/UX**
+  - Page title shows project name and git branch: `projectName[branch] | Env Manager | BuildAppolis`
+  - Project info display in CLI (name, version, path)
+  - Better env.config.ts/js detection
+  - TTY detection for password prompts
+- 🔧 **Improved CLI Experience**
+  - Global password required once per machine
+  - Optional project-specific passwords
+  - Current project display in help menu
+  - Fixed password setup flow
+
+### Fixed
+- Password prompt handling in non-TTY environments
+- env.config.ts detection in project directories
+- Project registration and port assignment
+
 ## [1.3.0] - 2025-08-19
 
 ### Added

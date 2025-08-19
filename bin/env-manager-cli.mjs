@@ -116,6 +116,23 @@ function getProjectForPath(projectPath) {
 
 function promptPassword(message) {
   return new Promise((resolve) => {
+    // Check if we're in a TTY terminal
+    const isTTY = process.stdin.isTTY
+    
+    if (!isTTY) {
+      // Simple prompt for non-TTY environments
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+      })
+      
+      rl.question(message, (answer) => {
+        rl.close()
+        resolve(answer)
+      })
+      return
+    }
+    
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
@@ -233,50 +250,37 @@ function generateRecoveryPhrase() {
   return phrase.join('-')
 }
 
-async function setupPassword() {
-  log('🔐 BuildAppolis Env-Manager - Secure Password Setup', colors.bright + colors.blue)
-  log('━'.repeat(50), colors.blue)
-  console.log()
-  
-  // Check if credentials already exist
+async function setupGlobalPassword(silent = false) {
+  // Check if global credentials already exist
   const existingCreds = loadCredentials()
   
   if (existingCreds) {
-    log('⚠️  Master password already configured', colors.yellow)
-    log(`   Created: ${new Date(existingCreds.createdAt).toLocaleDateString()}`, colors.reset)
-    
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout
-    })
-    
-    const answer = await new Promise(resolve => {
-      rl.question('Do you want to change it? (y/N): ', resolve)
-    })
-    rl.close()
-    
-    if (answer.toLowerCase() !== 'y' && answer.toLowerCase() !== 'yes') {
-      log('✅ Keeping existing password', colors.green)
-      return
+    if (!silent) {
+      log('✅ Global password already configured', colors.green)
+      log(`   Created: ${new Date(existingCreds.createdAt).toLocaleDateString()}`, colors.reset)
     }
+    return true
   }
   
+  log('🔐 BuildAppolis Env-Manager - Global Password Setup', colors.bright + colors.blue)
+  log('━'.repeat(50), colors.blue)
+  console.log()
   log('Please set a master password for Env-Manager:', colors.cyan)
-  log('(Stored securely in ~/.env-manager/)', colors.reset)
+  log('(This password will be used for all projects)', colors.reset)
   console.log()
   
   const password = await promptPassword('Password: ')
   
   if (!password || password.length < 6) {
     log('❌ Password must be at least 6 characters', colors.red)
-    process.exit(1)
+    return false
   }
   
   const confirmPassword = await promptPassword('Confirm password: ')
   
   if (password !== confirmPassword) {
     log('❌ Passwords do not match', colors.red)
-    process.exit(1)
+    return false
   }
   
   // Generate secure credentials
@@ -298,7 +302,7 @@ async function setupPassword() {
   // Save credentials securely
   if (!saveCredentials(credentials)) {
     log('❌ Failed to save credentials', colors.red)
-    process.exit(1)
+    return false
   }
   
   console.log()
@@ -312,21 +316,81 @@ async function setupPassword() {
   log('⚠️  Write this down and store it safely!', colors.yellow)
   log('   You\'ll need it if you forget your password', colors.reset)
   console.log()
-  log('Your credentials are stored in:', colors.cyan)
-  log(getCredentialsPath(), colors.reset)
-  console.log()
-  log('To start the Env-Manager service, run:', colors.cyan)
-  log('npx env-manager start', colors.bright)
-  console.log()
+  return true
+}
+
+async function setupProjectPassword() {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  })
+  
+  const answer = await new Promise(resolve => {
+    rl.question('\nDo you want to set a project-specific password? (y/N): ', resolve)
+  })
+  rl.close()
+  
+  if (answer.toLowerCase() !== 'y' && answer.toLowerCase() !== 'yes') {
+    return null
+  }
+  
+  log('\n🔒 Setting project-specific password', colors.cyan)
+  const password = await promptPassword('Project password: ')
+  
+  if (!password || password.length < 6) {
+    log('❌ Password must be at least 6 characters', colors.red)
+    return null
+  }
+  
+  const confirmPassword = await promptPassword('Confirm password: ')
+  
+  if (password !== confirmPassword) {
+    log('❌ Passwords do not match', colors.red)
+    return null
+  }
+  
+  // Generate project-specific credentials
+  const salt = randomBytes(32).toString('hex')
+  const passwordHash = hashPassword(password, salt)
+  
+  log('✅ Project password set successfully!', colors.green)
+  return { passwordHash, salt }
 }
 
 async function initProject() {
+  const projectPath = process.cwd()
+  const packageJsonPath = path.join(projectPath, 'package.json')
+  let projectName = path.basename(projectPath)
+  let projectVersion = '1.0.0'
+  
+  // Try to read project info from package.json
+  if (fs.existsSync(packageJsonPath)) {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
+      projectName = pkg.name || projectName
+      projectVersion = pkg.version || projectVersion
+    } catch {}
+  }
+  
+  // Display header with project info
   log('🚀 BuildAppolis Env-Manager - Project Setup', colors.bright + colors.blue)
   log('━'.repeat(50), colors.blue)
   console.log()
+  log('📦 Project Information:', colors.cyan)
+  log(`   Name: ${projectName}`, colors.reset)
+  log(`   Version: ${projectVersion}`, colors.reset)
+  log(`   Path: ${projectPath}`, colors.reset)
+  log(`   Env-Manager: v${packageJson.version}`, colors.reset)
+  console.log()
+  
+  // Check and setup global password first
+  const hasGlobalPassword = await setupGlobalPassword(true)
+  if (!hasGlobalPassword) {
+    process.exit(1)
+  }
   
   // Create env.config.ts template
-  const configPath = path.join(process.cwd(), 'env.config.ts')
+  const configPath = path.join(projectPath, 'env.config.ts')
   
   if (fs.existsSync(configPath)) {
     log('✅ env.config.ts already exists', colors.green)
@@ -337,8 +401,8 @@ async function initProject() {
 import type { ProjectConfig } from '@buildappolis/env-manager'
 
 const config: ProjectConfig = {
-  projectName: '${path.basename(process.cwd())}',
-  projectVersion: '1.0.0',
+  projectName: '${projectName}',
+  projectVersion: '${projectVersion}',
   envManagerVersion: '^${packageJson.version}',
   
   requirements: {
@@ -395,11 +459,18 @@ ENV_MANAGER_PASSWORD=your-secure-password
     log('✅ Created .env.example template', colors.green)
   }
   
-  // Setup password
-  await setupPassword()
+  // Optional project-specific password
+  const projectPassword = await setupProjectPassword()
   
   // Register project in registry
-  const projectInfo = registerProject(process.cwd())
+  const projectInfo = registerProject(projectPath, projectName)
+  
+  // Save project password if set
+  if (projectPassword) {
+    const registry = loadProjectRegistry()
+    registry.projects[path.resolve(projectPath)].projectPassword = projectPassword
+    saveProjectRegistry(registry)
+  }
   log(`✅ Project registered: ${projectInfo.name}`, colors.green)
   log(`   Port assigned: ${projectInfo.port}`, colors.reset)
   
@@ -416,11 +487,24 @@ async function startService(options = {}) {
   const projectRoot = options.project || process.cwd()
   const absolutePath = path.resolve(projectRoot)
   
+  // Get project info from package.json
+  const packageJsonPath = path.join(absolutePath, 'package.json')
+  let projectName = path.basename(absolutePath)
+  let projectVersion = '1.0.0'
+  
+  if (fs.existsSync(packageJsonPath)) {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
+      projectName = pkg.name || projectName
+      projectVersion = pkg.version || projectVersion
+    } catch {}
+  }
+  
   // Get or register project
   let projectInfo = getProjectForPath(absolutePath)
   if (!projectInfo) {
     log('📝 Registering new project...', colors.cyan)
-    projectInfo = registerProject(absolutePath)
+    projectInfo = registerProject(absolutePath, projectName)
   }
   
   // Update last accessed time
@@ -429,18 +513,33 @@ async function startService(options = {}) {
   registry.activeProject = absolutePath
   saveProjectRegistry(registry)
   
-  log(`🚀 Starting Env-Manager for: ${projectInfo.name}`, colors.cyan)
+  // Display project header
+  console.log()
+  log('╔' + '═'.repeat(48) + '╗', colors.bright + colors.blue)
+  log('║' + `     🔧 ${projectName}`.padEnd(48) + '║', colors.bright + colors.blue)
+  log('╚' + '═'.repeat(48) + '╝', colors.bright + colors.blue)
+  console.log()
+  log('📦 Project Details:', colors.cyan)
+  log(`   Name: ${projectName}`, colors.reset)
+  log(`   Version: ${projectVersion}`, colors.reset)
   log(`   Path: ${projectInfo.path}`, colors.reset)
   log(`   Port: ${projectInfo.port}`, colors.reset)
+  log(`   Env-Manager: v${packageJson.version}`, colors.reset)
   console.log()
   
   const envManagerPath = path.join(__dirname, '..')
   
-  // Check if env.config.ts exists in the project
-  const configPath = path.join(absolutePath, 'env.config.ts')
-  if (!fs.existsSync(configPath)) {
+  // Check for env.config.ts or env.config.js
+  const configTsPath = path.join(absolutePath, 'env.config.ts')
+  const configJsPath = path.join(absolutePath, 'env.config.js')
+  const configExists = fs.existsSync(configTsPath) || fs.existsSync(configJsPath)
+  
+  if (configExists) {
+    log('✅ Found env.config.' + (fs.existsSync(configTsPath) ? 'ts' : 'js'), colors.green)
+  } else {
     log('⚠️  No env.config.ts found in project directory', colors.yellow)
-    log('   Run "npx env-manager init" in that directory to create one', colors.reset)
+    log('   Run "npx env-manager init" to create one', colors.reset)
+    console.log()
   }
   
   // Build first
@@ -617,8 +716,8 @@ function listProjects() {
 
 program
   .command('setup-password')
-  .description('Set or change the master password')
-  .action(setupPassword)
+  .description('Set or change the global master password')
+  .action(() => setupGlobalPassword(false))
 
 program
   .command('recover-password')
@@ -791,9 +890,31 @@ program
 
 // Show help if no command provided
 if (process.argv.length === 2) {
+  const projectPath = process.cwd()
+  const packageJsonPath = path.join(projectPath, 'package.json')
+  let currentProject = null
+  
+  // Check if we're in a project with package.json
+  if (fs.existsSync(packageJsonPath)) {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
+      currentProject = {
+        name: pkg.name || path.basename(projectPath),
+        version: pkg.version || '1.0.0'
+      }
+    } catch {}
+  }
+  
   console.log()
   log('🔧 BuildAppolis Env-Manager v' + packageJson.version, colors.bright + colors.blue)
   log('━'.repeat(50), colors.blue)
+  
+  if (currentProject) {
+    console.log()
+    log('📦 Current Project:', colors.cyan)
+    log(`   ${currentProject.name} v${currentProject.version}`, colors.reset)
+  }
+  
   console.log()
   log('Quick Start:', colors.cyan)
   log('  env-manager init         Initialize in your project', colors.reset)

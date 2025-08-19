@@ -119,3 +119,33 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Pixel/8-bit styles for ProjectSelector */
+.pixel-borders {
+  border: 4px solid #000;
+  box-shadow: 8px 8px 0px 0px rgba(0,0,0,1);
+}
+
+.pixel-button {
+  border: 2px solid #000;
+  box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+  transition: all 0.1s;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.75rem;
+}
+
+.pixel-button:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
+}
+
+.pixel-button:active {
+  transform: translate(4px, 4px);
+  box-shadow: none;
+}
+
+.pixel-input {
+  border: 2px solid #000;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.75rem;
+}

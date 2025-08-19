@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/8bit/input'
 import { Label } from '@/components/ui/8bit/label'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/8bit/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/8bit/select'
-import { Lock, Unlock, Save, Download, Upload, RefreshCw, Shield, Settings, Terminal, Key, Database, Clock } from 'lucide-react'
+import { Lock, Unlock, Save, Download, Upload, RefreshCw, Shield, Settings, Terminal, Key, Database, Clock, FolderOpen } from 'lucide-react'
+import ProjectSelector from './ProjectSelector'
 
 interface Variable {
   name: string
@@ -28,6 +29,8 @@ export default function EnvManager8Bit() {
   const [newVar, setNewVar] = useState({ name: '', value: '', encrypted: false, description: '' })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showProjectSelector, setShowProjectSelector] = useState(false)
+  const [currentProject, setCurrentProject] = useState<any>(null)
 
   useEffect(() => {
     checkAuthStatus()
@@ -220,8 +223,32 @@ export default function EnvManager8Bit() {
         </h1>
         <p className="text-xs text-cyan-300">
           LEVEL: {selectedEnv.toUpperCase()} | VARIABLES: {variables.length}
+          {currentProject && ` | PROJECT: ${currentProject.name}`}
         </p>
+        <Button
+          onClick={() => setShowProjectSelector(!showProjectSelector)}
+          className="mt-4"
+          variant="outline"
+        >
+          <FolderOpen className="mr-2 h-4 w-4" />
+          {currentProject ? 'SWITCH PROJECT' : 'SELECT PROJECT'}
+        </Button>
       </div>
+
+      {/* Project Selector Modal */}
+      {showProjectSelector && (
+        <div className="mb-6">
+          <ProjectSelector 
+            onProjectSelect={(project) => {
+              setCurrentProject(project)
+              setShowProjectSelector(false)
+              // Reload variables for the selected project
+              loadVariables(selectedEnv)
+              playSound('powerup')
+            }}
+          />
+        </div>
+      )}
 
       {/* Environment Selector */}
       <Card className="mb-6 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">

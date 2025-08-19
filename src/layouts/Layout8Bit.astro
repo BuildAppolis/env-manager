@@ -1,12 +1,17 @@
 ---
 export interface Props {
   projectName?: string
+  gitBranch?: string
 }
 
-const { projectName } = Astro.props
-const title = projectName 
-  ? `${projectName} | Env Manager | BuildAppolis`
-  : 'Env Manager | BuildAppolis'
+const { projectName, gitBranch } = Astro.props
+
+// Format title with branch if available
+let title = 'Env Manager | BuildAppolis'
+if (projectName) {
+  const branchPart = gitBranch ? `[${gitBranch}]` : ''
+  title = `${projectName}${branchPart} | Env Manager | BuildAppolis`
+}
 ---
 
 <!DOCTYPE html>
