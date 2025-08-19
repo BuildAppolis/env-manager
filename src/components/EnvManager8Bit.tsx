@@ -5,11 +5,12 @@ import { Input } from './ui/8bit/input'
 import { Label } from './ui/8bit/label'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/8bit/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/8bit/select'
-import { Lock, Unlock, Save, Download, Upload, RefreshCw, Shield, Settings, Terminal, Key, Database, Clock, FolderOpen, History, FileEdit } from 'lucide-react'
+import { Lock, Unlock, Save, Download, Upload, RefreshCw, Shield, Settings, Terminal, Key, Database, Clock, FolderOpen, History, FileEdit, Import, FileInput, FileOutput } from 'lucide-react'
 import ProjectSelector from './ProjectSelector'
 import MissingVariableItem from './MissingVariableItem'
 import VersionHistory from './VersionHistory'
 import DraftMode from './DraftMode'
+import ImportExportDialog from './ImportExportDialog'
 import type { ValidationResults, GroupResult, VariableResult } from '../types'
 
 interface Variable {
@@ -42,6 +43,7 @@ export default function EnvManager8Bit({ project, onBack, skipAuth = false, onBr
   const [notification, setNotification] = useState<{type: 'success' | 'error', message: string} | null>(null)
   const [currentProject, setCurrentProject] = useState<any>(project || null)
   const [projectStatus, setProjectStatus] = useState<ValidationResults | null>(null)
+  const [showImportExport, setShowImportExport] = useState(false)
 
   useEffect(() => {
     if (!skipAuth) {
@@ -257,9 +259,76 @@ export default function EnvManager8Bit({ project, onBack, skipAuth = false, onBr
     setDeletingVariable(null)
   }
 
+  const handleImportVariables = async (parsedVariables: any[]) => {
+    setIsLoading(true)
+    let successCount = 0
+    let errorCount = 0
+    
+    try {
+      for (const variable of parsedVariables) {
+        try {
+          let url = '/api/variables'
+          if (currentProject?.path) {
+            url += `?projectPath=${encodeURIComponent(currentProject.path)}`
+          }
+          
+          // Check if variable exists (update) or is new (create)
+          const method = variable.isDuplicate ? 'PUT' : 'POST'
+          
+          const res = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: variable.name,
+              value: variable.value,
+              description: variable.description || '',
+              sensitive: variable.isSensitive || false,
+              category: variable.category || selectedBranch,
+              branch: selectedBranch
+            })
+          })
+          
+          if (res.ok) {
+            successCount++
+          } else {
+            errorCount++
+          }
+        } catch (err) {
+          errorCount++
+        }
+      }
+      
+      // Reload variables and project status
+      await loadVariables(selectedBranch)
+      loadProjectStatus()
+      
+      // Show notification
+      if (errorCount === 0) {
+        setNotification({
+          type: 'success', 
+          message: `Successfully imported ${successCount} variable${successCount !== 1 ? 's' : ''}!`
+        })
+        playSound('powerup')
+      } else {
+        setNotification({
+          type: 'error',
+          message: `Imported ${successCount} variable${successCount !== 1 ? 's' : ''}, ${errorCount} failed`
+        })
+        playSound('error')
+      }
+      setTimeout(() => setNotification(null), 5000)
+      
+    } catch (err) {
+      setNotification({type: 'error', message: 'Import failed'})
+      setTimeout(() => setNotification(null), 5000)
+      playSound('error')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const playSound = (type: 'success' | 'error' | 'powerup' | 'hit') => {
     // Optional: Add actual 8-bit sound effects
-    const audio = new Audio()
     switch(type) {
       case 'success':
         // Play success beep
@@ -585,11 +654,14 @@ export default function EnvManager8Bit({ project, onBack, skipAuth = false, onBr
             </div>
             {activeTab === 'variables' && (
               <div className="flex gap-2">
-                <Button size="sm" variant="outline">
-                  <Download className="h-4 w-4" />
-                </Button>
-                <Button size="sm" variant="outline">
-                  <Upload className="h-4 w-4" />
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => setShowImportExport(true)}
+                  title="Import/Export Variables"
+                >
+                  <FileInput className="h-4 w-4 mr-1" />
+                  <FileOutput className="h-4 w-4" />
                 </Button>
                 <Button size="sm" variant="outline" onClick={refreshVariables}>
                   <RefreshCw className="h-4 w-4" />
@@ -704,6 +776,17 @@ export default function EnvManager8Bit({ project, onBack, skipAuth = false, onBr
           )}
         </CardContent>
       </Card>
+      
+      {/* Import/Export Dialog */}
+      <ImportExportDialog
+        isOpen={showImportExport}
+        onClose={() => setShowImportExport(false)}
+        projectPath={currentProject?.path}
+        branch={selectedBranch}
+        onImport={handleImportVariables}
+        requiredVariables={projectStatus?.missing || []}
+        existingVariables={variables}
+      />
     </div>
   )
 }

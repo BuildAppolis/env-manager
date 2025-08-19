@@ -889,6 +889,41 @@ program
     }
   })
 
+program
+  .command('port [action] [port]')
+  .description('Manage env-manager port configuration')
+  .option('--ws-port <port>', 'Set WebSocket port (default: port+1)')
+  .option('--force', 'Kill processes using target ports')
+  .option('--no-restart', 'Don\'t auto-restart after port change')
+  .action(async (action, port, options) => {
+    // Import the port manager module
+    const { fileURLToPath } = await import('url')
+    const { dirname, join } = await import('path')
+    const __dirname = dirname(fileURLToPath(import.meta.url))
+    const portManagerPath = join(__dirname, 'env-manager-port.mjs')
+    
+    // Build arguments for the port manager
+    const args = []
+    if (action) args.push(action)
+    if (port) args.push(port)
+    if (options.wsPort) {
+      args.push('--ws-port')
+      args.push(options.wsPort)
+    }
+    if (options.force) args.push('--force')
+    if (options.noRestart === false) args.push('--no-restart')
+    
+    // Execute the port manager
+    const { spawn } = await import('child_process')
+    const child = spawn('node', [portManagerPath, ...args], {
+      stdio: 'inherit'
+    })
+    
+    child.on('exit', (code) => {
+      process.exit(code || 0)
+    })
+  })
+
 // Show help if no command provided
 if (process.argv.length === 2) {
   const projectPath = process.cwd()

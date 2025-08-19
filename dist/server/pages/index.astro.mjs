@@ -1,5 +1,5 @@
 import { c as createComponent, d as renderComponent, r as renderTemplate } from '../chunks/astro/server_DE_7F_eO.mjs';
-import { V as VersionFooter, $ as $$Layout8Bit } from '../chunks/VersionFooter_CAOtoPfE.mjs';
+import { V as VersionFooter, $ as $$Layout8Bit } from '../chunks/VersionFooter_B4W5GPCR.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import { useState, useEffect } from 'react';
 import { FolderOpen, RefreshCw, Key, GitBranch, Lock, Square, Play, Trash2 } from 'lucide-react';

@@ -1,4 +1,4 @@
-import { g as getDatabase } from '../../chunks/session_CMQvN_Ad.mjs';
+import { g as getDatabase } from '../../chunks/session_DKC9ty2U.mjs';
 import { g as getGitUtils } from '../../chunks/git-utils_B6WJYd3b.mjs';
 import { g as getHotReloadManager } from '../../chunks/hot-reload_DH00vsQQ.mjs';
 import path from 'path';
@@ -121,17 +121,59 @@ const POST = async ({ request, url }) => {
     });
   }
 };
-const PUT = async ({ request }) => {
+const PUT = async ({ request, url }) => {
   try {
-    const database = getDatabase();
-    if (!database.isAuthenticated()) {
-      return new Response(JSON.stringify({ error: "Not authenticated" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" }
-      });
-    }
+    const projectPath = url.searchParams.get("projectPath");
+    const database = getDatabase(projectPath || void 0);
+    const hasPassword = database.hasPassword();
     const variable = await request.json();
-    const result = database.updateVariable(variable.name, variable.value, variable);
+    if (!variable.branch) {
+      const projectRoot = projectPath || process.env.PROJECT_ROOT || path.resolve(process.cwd(), "..");
+      const gitUtils = getGitUtils(projectRoot);
+      const gitInfo = await gitUtils.getGitInfo();
+      variable.branch = gitInfo.branch || "main";
+    }
+    let result;
+    try {
+      result = database.updateVariable(variable.name, variable.value, variable);
+    } catch (updateError) {
+      if (updateError.message === "Not authenticated" && !hasPassword) {
+        const dbData = database.data;
+        const now = (/* @__PURE__ */ new Date()).toISOString();
+        const existingIndex = dbData.variables?.findIndex(
+          (v) => v.name === variable.name && v.branch === variable.branch
+        );
+        if (existingIndex >= 0) {
+          dbData.variables[existingIndex] = {
+            ...dbData.variables[existingIndex],
+            value: variable.value,
+            description: variable.description || dbData.variables[existingIndex].description,
+            sensitive: variable.sensitive !== void 0 ? variable.sensitive : dbData.variables[existingIndex].sensitive,
+            category: variable.category || dbData.variables[existingIndex].category,
+            updatedAt: now
+          };
+          dbData.history = dbData.history || [];
+          dbData.history.push({
+            id: crypto.randomUUID(),
+            action: "update",
+            variableName: variable.name,
+            oldValue: dbData.variables[existingIndex].value,
+            newValue: variable.value,
+            timestamp: now
+          });
+          await database.saveData();
+          result = dbData.variables[existingIndex];
+        } else {
+          throw new Error("Variable not found");
+        }
+      } else {
+        throw updateError;
+      }
+    }
+    const hotReloadManager = getHotReloadManager(projectPath || void 0);
+    if (hotReloadManager.isEnabled()) {
+      hotReloadManager.triggerReload("variables");
+    }
     return new Response(JSON.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" }

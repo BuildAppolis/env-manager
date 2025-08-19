@@ -402,7 +402,7 @@ class EnvDatabase {
     }
   }
   getAllMetadata() {
-    return { ...this.data.metadata };
+    return { ...this.data.metadata || {} };
   }
 }
 

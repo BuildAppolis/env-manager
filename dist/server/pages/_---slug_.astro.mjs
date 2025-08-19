@@ -1,7 +1,7 @@
 import { c as createComponent, a as createAstro, d as renderComponent, r as renderTemplate, m as maybeRenderHead } from '../chunks/astro/server_DE_7F_eO.mjs';
-import { $ as $$Layout8Bit, V as VersionFooter } from '../chunks/VersionFooter_CAOtoPfE.mjs';
+import { $ as $$Layout8Bit, V as VersionFooter } from '../chunks/VersionFooter_B4W5GPCR.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { cva } from 'class-variance-authority';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -9,7 +9,7 @@ import { Slot } from '@radix-ui/react-slot';
 /* empty css                                  */
 import * as LabelPrimitive from '@radix-ui/react-label';
 import * as SelectPrimitive from '@radix-ui/react-select';
-import { ChevronDownIcon, CheckIcon, ChevronUpIcon, XIcon, History, ChevronDown, ChevronRight, GitBranch, Clock, User, Package, FileText, FileEdit, Plus, X, GitCommit, Save, AlertTriangle, Edit3, EyeOff, Eye, Trash2, Unlock, FolderOpen, Database, Key, Shield, Terminal, Download, Upload, RefreshCw, Lock } from 'lucide-react';
+import { ChevronDownIcon, CheckIcon, ChevronUpIcon, XIcon, History, ChevronDown, ChevronRight, GitBranch, Clock, User, Package, FileText, FileEdit, Plus, X, GitCommit, Save, AlertTriangle, Edit3, EyeOff, Eye, Trash2, Download, Upload, FileDown, Check, Copy, Info, FileUp, AlertCircle, Unlock, FolderOpen, Database, Key, Shield, Terminal, FileInput, FileOutput, RefreshCw, Lock } from 'lucide-react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 /* empty css                                  */
 import fs from 'fs';
@@ -939,6 +939,9 @@ function VersionHistory({ projectPath, onRestoreVersion, playSound }) {
         return { text: "MODIFIED", color: "text-yellow-400" };
       case "delete":
         return { text: "DELETED", color: "text-red-400" };
+      case "none":
+      default:
+        return { text: "UNCHANGED", color: "text-gray-400" };
     }
   };
   const getTimeDifference = (timestamp) => {
@@ -1261,6 +1264,9 @@ function DraftMode({ projectPath, onPublish, onDiscard, playSound }) {
         return { text: "MODIFIED", color: "bg-yellow-500/20 text-yellow-400", icon: Edit3 };
       case "delete":
         return { text: "DELETE", color: "bg-red-500/20 text-red-400", icon: Trash2 };
+      case "none":
+      default:
+        return { text: "UNCHANGED", color: "bg-gray-500/20 text-gray-400", icon: Edit3 };
     }
   };
   if (isLoading) {
@@ -1452,6 +1458,400 @@ function DraftMode({ projectPath, onPublish, onDiscard, playSound }) {
   ] });
 }
 
+function ImportExportDialog({
+  isOpen,
+  onClose,
+  projectPath,
+  branch = "main",
+  onImport,
+  requiredVariables = [],
+  existingVariables = []
+}) {
+  const [activeTab, setActiveTab] = useState("export");
+  const [exportFormat, setExportFormat] = useState(".env");
+  const [customExtension, setCustomExtension] = useState("");
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importContent, setImportContent] = useState("");
+  const [parsedVariables, setParsedVariables] = useState([]);
+  const [parseError, setParseError] = useState("");
+  const fileInputRef = useRef(null);
+  const exportFormats = [
+    { value: ".env", label: ".env" },
+    { value: ".env.local", label: ".env.local" },
+    { value: ".env.development", label: ".env.development" },
+    { value: ".env.production", label: ".env.production" },
+    { value: ".env.staging", label: ".env.staging" },
+    { value: "custom", label: "Custom..." }
+  ];
+  const handleExport = async (toClipboard = false) => {
+    setExportLoading(true);
+    try {
+      const url = `/api/export?${new URLSearchParams({
+        ...projectPath && { projectPath },
+        branch,
+        format: "env"
+      })}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Failed to export");
+      const data = await response.json();
+      const content = data.content || "";
+      if (toClipboard) {
+        await navigator.clipboard.writeText(content);
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2e3);
+      } else {
+        const blob = new Blob([content], { type: "text/plain" });
+        const url2 = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url2;
+        a.download = exportFormat === "custom" ? `.env.${customExtension}` : exportFormat;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url2);
+      }
+    } catch (error) {
+      console.error("Export error:", error);
+    } finally {
+      setExportLoading(false);
+    }
+  };
+  const parseEnvContent = (content) => {
+    const lines = content.split("\n");
+    const variables = [];
+    let currentCategory = "general";
+    let lastDescription = "";
+    const existingNames = new Set(existingVariables.map((v) => v.name));
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) {
+        lastDescription = "";
+        continue;
+      }
+      if (trimmed.startsWith("#")) {
+        const comment = trimmed.substring(1).trim();
+        if (comment.match(/^(===|---|\[).*?(===|---|\])/)) {
+          currentCategory = comment.replace(/[=\-\[\]]/g, "").trim().toLowerCase();
+        } else {
+          lastDescription = comment;
+        }
+        continue;
+      }
+      const match = trimmed.match(/^([A-Z_][A-Z0-9_]*)\s*=\s*(.*)$/);
+      if (match) {
+        const [, name, value] = match;
+        let cleanValue = value;
+        if (value.startsWith('"') && value.endsWith('"') || value.startsWith("'") && value.endsWith("'")) {
+          cleanValue = value.slice(1, -1);
+        }
+        const isSensitive = name.includes("SECRET") || name.includes("KEY") || name.includes("PASSWORD") || name.includes("TOKEN") || name.includes("PRIVATE");
+        variables.push({
+          name,
+          value: cleanValue,
+          description: lastDescription || void 0,
+          category: currentCategory,
+          isRequired: requiredVariables.includes(name),
+          isSensitive,
+          isNew: !existingNames.has(name),
+          isDuplicate: existingNames.has(name)
+        });
+        lastDescription = "";
+      }
+    }
+    return variables;
+  };
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e2) => {
+      const content = e2.target?.result;
+      setImportContent(content);
+      handleParseContent(content);
+    };
+    reader.readAsText(file);
+  };
+  const handleParseContent = (content) => {
+    try {
+      setParseError("");
+      const parsed = parseEnvContent(content);
+      setParsedVariables(parsed);
+    } catch (error) {
+      setParseError("Failed to parse .env file");
+      setParsedVariables([]);
+    }
+  };
+  const handleImportVariables = async () => {
+    if (!onImport || parsedVariables.length === 0) return;
+    setImportLoading(true);
+    try {
+      await onImport(parsedVariables);
+      onClose();
+    } catch (error) {
+      console.error("Import error:", error);
+      setParseError("Failed to import variables");
+    } finally {
+      setImportLoading(false);
+    }
+  };
+  const getVariableIcon = (variable) => {
+    if (variable.isRequired) return "⚠️";
+    if (variable.isDuplicate) return "🔄";
+    if (variable.isNew) return "✨";
+    return "📝";
+  };
+  const getVariableColor = (variable) => {
+    if (variable.isRequired) return "text-yellow-400";
+    if (variable.isDuplicate) return "text-blue-400";
+    if (variable.isNew) return "text-green-400";
+    return "text-gray-400";
+  };
+  return /* @__PURE__ */ jsx(Dialog, { open: isOpen, onOpenChange: onClose, children: /* @__PURE__ */ jsxs(DialogContent, { className: "max-w-3xl max-h-[80vh] overflow-hidden flex flex-col", children: [
+    /* @__PURE__ */ jsxs(DialogHeader, { children: [
+      /* @__PURE__ */ jsx(DialogTitle, { className: "text-xl font-bold", children: "IMPORT/EXPORT ENVIRONMENT VARIABLES" }),
+      /* @__PURE__ */ jsx(DialogDescription, { children: "Export your variables to a file or clipboard, or import from an existing .env file" })
+    ] }),
+    /* @__PURE__ */ jsxs("div", { className: "flex gap-2 mb-4", children: [
+      /* @__PURE__ */ jsxs(
+        Button,
+        {
+          variant: activeTab === "export" ? "default" : "outline",
+          onClick: () => setActiveTab("export"),
+          className: "flex-1",
+          children: [
+            /* @__PURE__ */ jsx(Download, { className: "h-4 w-4 mr-2" }),
+            "EXPORT"
+          ]
+        }
+      ),
+      /* @__PURE__ */ jsxs(
+        Button,
+        {
+          variant: activeTab === "import" ? "default" : "outline",
+          onClick: () => setActiveTab("import"),
+          className: "flex-1",
+          children: [
+            /* @__PURE__ */ jsx(Upload, { className: "h-4 w-4 mr-2" }),
+            "IMPORT"
+          ]
+        }
+      )
+    ] }),
+    /* @__PURE__ */ jsxs("div", { className: "flex-1 overflow-y-auto", children: [
+      activeTab === "export" && /* @__PURE__ */ jsxs("div", { className: "space-y-4", children: [
+        /* @__PURE__ */ jsxs(Card, { children: [
+          /* @__PURE__ */ jsx(CardHeader, { children: /* @__PURE__ */ jsx(CardTitle, { className: "text-sm", children: "EXPORT FORMAT" }) }),
+          /* @__PURE__ */ jsxs(CardContent, { className: "space-y-4", children: [
+            /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsx(Label, { htmlFor: "format", children: "Select format" }),
+              /* @__PURE__ */ jsxs(Select, { value: exportFormat, onValueChange: setExportFormat, children: [
+                /* @__PURE__ */ jsx(SelectTrigger, { children: /* @__PURE__ */ jsx(SelectValue, {}) }),
+                /* @__PURE__ */ jsx(SelectContent, { children: exportFormats.map((format) => /* @__PURE__ */ jsx(SelectItem, { value: format.value, children: format.label }, format.value)) })
+              ] })
+            ] }),
+            exportFormat === "custom" && /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsx(Label, { htmlFor: "custom-ext", children: "Custom extension" }),
+              /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
+                /* @__PURE__ */ jsx("span", { className: "text-sm", children: ".env." }),
+                /* @__PURE__ */ jsx(
+                  Input,
+                  {
+                    id: "custom-ext",
+                    value: customExtension,
+                    onChange: (e) => setCustomExtension(e.target.value),
+                    placeholder: "custom",
+                    className: "flex-1"
+                  }
+                )
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxs("div", { className: "flex gap-2 pt-2", children: [
+              /* @__PURE__ */ jsxs(
+                Button,
+                {
+                  onClick: () => handleExport(false),
+                  disabled: exportLoading || exportFormat === "custom" && !customExtension,
+                  className: "flex-1",
+                  children: [
+                    /* @__PURE__ */ jsx(FileDown, { className: "h-4 w-4 mr-2" }),
+                    "DOWNLOAD FILE"
+                  ]
+                }
+              ),
+              /* @__PURE__ */ jsx(
+                Button,
+                {
+                  onClick: () => handleExport(true),
+                  disabled: exportLoading,
+                  variant: "outline",
+                  className: "flex-1",
+                  children: copySuccess ? /* @__PURE__ */ jsxs(Fragment, { children: [
+                    /* @__PURE__ */ jsx(Check, { className: "h-4 w-4 mr-2" }),
+                    "COPIED!"
+                  ] }) : /* @__PURE__ */ jsxs(Fragment, { children: [
+                    /* @__PURE__ */ jsx(Copy, { className: "h-4 w-4 mr-2" }),
+                    "COPY TO CLIPBOARD"
+                  ] })
+                }
+              )
+            ] })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxs(Card, { children: [
+          /* @__PURE__ */ jsx(CardHeader, { children: /* @__PURE__ */ jsx(CardTitle, { className: "text-sm", children: "EXPORT INFO" }) }),
+          /* @__PURE__ */ jsx(CardContent, { children: /* @__PURE__ */ jsxs("div", { className: "space-y-2 text-xs", children: [
+            /* @__PURE__ */ jsxs("div", { className: "flex items-start gap-2", children: [
+              /* @__PURE__ */ jsx(Info, { className: "h-3 w-3 mt-0.5 text-blue-400" }),
+              /* @__PURE__ */ jsx("span", { children: "Sensitive values will be decrypted during export" })
+            ] }),
+            /* @__PURE__ */ jsxs("div", { className: "flex items-start gap-2", children: [
+              /* @__PURE__ */ jsx(Info, { className: "h-3 w-3 mt-0.5 text-blue-400" }),
+              /* @__PURE__ */ jsx("span", { children: "Comments with descriptions will be included" })
+            ] }),
+            /* @__PURE__ */ jsxs("div", { className: "flex items-start gap-2", children: [
+              /* @__PURE__ */ jsx(Info, { className: "h-3 w-3 mt-0.5 text-blue-400" }),
+              /* @__PURE__ */ jsx("span", { children: "Variables are grouped by category" })
+            ] })
+          ] }) })
+        ] })
+      ] }),
+      activeTab === "import" && /* @__PURE__ */ jsxs("div", { className: "space-y-4", children: [
+        /* @__PURE__ */ jsxs(Card, { children: [
+          /* @__PURE__ */ jsx(CardHeader, { children: /* @__PURE__ */ jsx(CardTitle, { className: "text-sm", children: "IMPORT SOURCE" }) }),
+          /* @__PURE__ */ jsxs(CardContent, { className: "space-y-4", children: [
+            /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsx(
+                "input",
+                {
+                  ref: fileInputRef,
+                  type: "file",
+                  accept: ".env,.env.*,text/plain",
+                  onChange: handleFileSelect,
+                  className: "hidden"
+                }
+              ),
+              /* @__PURE__ */ jsxs(
+                Button,
+                {
+                  onClick: () => fileInputRef.current?.click(),
+                  variant: "outline",
+                  className: "w-full",
+                  children: [
+                    /* @__PURE__ */ jsx(FileUp, { className: "h-4 w-4 mr-2" }),
+                    "SELECT .ENV FILE"
+                  ]
+                }
+              )
+            ] }),
+            /* @__PURE__ */ jsxs("div", { className: "relative", children: [
+              /* @__PURE__ */ jsx("div", { className: "absolute inset-0 flex items-center", children: /* @__PURE__ */ jsx("span", { className: "w-full border-t" }) }),
+              /* @__PURE__ */ jsx("div", { className: "relative flex justify-center text-xs uppercase", children: /* @__PURE__ */ jsx("span", { className: "bg-gray-900 px-2 text-gray-400", children: "OR PASTE CONTENT" }) })
+            ] }),
+            /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsx(Label, { htmlFor: "import-content", children: "Paste .env content" }),
+              /* @__PURE__ */ jsx(
+                "textarea",
+                {
+                  id: "import-content",
+                  value: importContent,
+                  onChange: (e) => {
+                    setImportContent(e.target.value);
+                    handleParseContent(e.target.value);
+                  },
+                  placeholder: "# Database\nDATABASE_URL=postgresql://...",
+                  className: "w-full h-32 px-3 py-2 text-sm bg-black border border-gray-600 rounded font-mono resize-none focus:outline-none focus:border-cyan-400"
+                }
+              )
+            ] })
+          ] })
+        ] }),
+        parseError && /* @__PURE__ */ jsx(Card, { className: "border-red-500", children: /* @__PURE__ */ jsx(CardContent, { className: "pt-4", children: /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 text-red-400", children: [
+          /* @__PURE__ */ jsx(AlertCircle, { className: "h-4 w-4" }),
+          /* @__PURE__ */ jsx("span", { className: "text-sm", children: parseError })
+        ] }) }) }),
+        parsedVariables.length > 0 && /* @__PURE__ */ jsxs(Card, { children: [
+          /* @__PURE__ */ jsxs(CardHeader, { children: [
+            /* @__PURE__ */ jsxs(CardTitle, { className: "text-sm", children: [
+              "PARSED VARIABLES (",
+              parsedVariables.length,
+              ")"
+            ] }),
+            /* @__PURE__ */ jsx(CardDescription, { children: "Review the variables that will be imported" })
+          ] }),
+          /* @__PURE__ */ jsxs(CardContent, { children: [
+            /* @__PURE__ */ jsx("div", { className: "space-y-2 max-h-64 overflow-y-auto", children: parsedVariables.map((variable, idx) => /* @__PURE__ */ jsxs(
+              "div",
+              {
+                className: "flex items-center justify-between p-2 border border-gray-600 rounded text-xs",
+                children: [
+                  /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
+                    /* @__PURE__ */ jsx("span", { children: getVariableIcon(variable) }),
+                    /* @__PURE__ */ jsxs("div", { children: [
+                      /* @__PURE__ */ jsx("div", { className: "font-mono font-bold", children: variable.name }),
+                      variable.description && /* @__PURE__ */ jsx("div", { className: "text-gray-400 text-xs", children: variable.description }),
+                      /* @__PURE__ */ jsxs("div", { className: "flex gap-2 mt-1", children: [
+                        variable.category && /* @__PURE__ */ jsx("span", { className: "px-1 py-0.5 bg-gray-800 rounded text-xs", children: variable.category }),
+                        variable.isSensitive && /* @__PURE__ */ jsx("span", { className: "px-1 py-0.5 bg-red-900 rounded text-xs", children: "sensitive" })
+                      ] })
+                    ] })
+                  ] }),
+                  /* @__PURE__ */ jsxs("div", { className: `text-xs ${getVariableColor(variable)}`, children: [
+                    variable.isRequired && "REQUIRED",
+                    variable.isDuplicate && "UPDATE",
+                    variable.isNew && "NEW"
+                  ] })
+                ]
+              },
+              idx
+            )) }),
+            /* @__PURE__ */ jsxs("div", { className: "mt-4 pt-4 border-t border-gray-700", children: [
+              /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-3 gap-2 text-xs mb-4", children: [
+                /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
+                  /* @__PURE__ */ jsx("span", { children: "✨" }),
+                  /* @__PURE__ */ jsxs("span", { children: [
+                    "New: ",
+                    parsedVariables.filter((v) => v.isNew).length
+                  ] })
+                ] }),
+                /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
+                  /* @__PURE__ */ jsx("span", { children: "🔄" }),
+                  /* @__PURE__ */ jsxs("span", { children: [
+                    "Update: ",
+                    parsedVariables.filter((v) => v.isDuplicate).length
+                  ] })
+                ] }),
+                /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
+                  /* @__PURE__ */ jsx("span", { children: "⚠️" }),
+                  /* @__PURE__ */ jsxs("span", { children: [
+                    "Required: ",
+                    parsedVariables.filter((v) => v.isRequired).length
+                  ] })
+                ] })
+              ] }),
+              /* @__PURE__ */ jsxs(
+                Button,
+                {
+                  onClick: handleImportVariables,
+                  disabled: importLoading || parsedVariables.length === 0,
+                  className: "w-full",
+                  children: [
+                    /* @__PURE__ */ jsx(Save, { className: "h-4 w-4 mr-2" }),
+                    "IMPORT ",
+                    parsedVariables.length,
+                    " VARIABLES"
+                  ]
+                }
+              )
+            ] })
+          ] })
+        ] })
+      ] })
+    ] })
+  ] }) });
+}
+
 function EnvManager8Bit({ project, onBack, skipAuth = false, onBranchChange, initialBranch }) {
   const [isAuthenticated, setIsAuthenticated] = useState(skipAuth);
   const [activeTab, setActiveTab] = useState("variables");
@@ -1466,6 +1866,7 @@ function EnvManager8Bit({ project, onBack, skipAuth = false, onBranchChange, ini
   const [notification, setNotification] = useState(null);
   const [currentProject, setCurrentProject] = useState(project || null);
   const [projectStatus, setProjectStatus] = useState(null);
+  const [showImportExport, setShowImportExport] = useState(false);
   useEffect(() => {
     if (!skipAuth) {
       checkAuthStatus();
@@ -1506,7 +1907,6 @@ function EnvManager8Bit({ project, onBack, skipAuth = false, onBranchChange, ini
       }
     } catch (err) {
       setError("Login failed");
-      playSound();
     }
     setIsLoading(false);
   };
@@ -1610,7 +2010,6 @@ function EnvManager8Bit({ project, onBack, skipAuth = false, onBranchChange, ini
     } catch (err) {
       setNotification({ type: "error", message: "Failed to add variable" });
       setTimeout(() => setNotification(null), 5e3);
-      playSound();
     }
     setIsLoading(false);
   };
@@ -1644,12 +2043,66 @@ function EnvManager8Bit({ project, onBack, skipAuth = false, onBranchChange, ini
       console.error("Failed to delete variable:", err);
       setNotification({ type: "error", message: "Failed to delete variable" });
       setTimeout(() => setNotification(null), 5e3);
-      playSound();
     }
     setDeletingVariable(null);
   };
+  const handleImportVariables = async (parsedVariables) => {
+    setIsLoading(true);
+    let successCount = 0;
+    let errorCount = 0;
+    try {
+      for (const variable of parsedVariables) {
+        try {
+          let url = "/api/variables";
+          if (currentProject?.path) {
+            url += `?projectPath=${encodeURIComponent(currentProject.path)}`;
+          }
+          const method = variable.isDuplicate ? "PUT" : "POST";
+          const res = await fetch(url, {
+            method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: variable.name,
+              value: variable.value,
+              description: variable.description || "",
+              sensitive: variable.isSensitive || false,
+              category: variable.category || selectedBranch,
+              branch: selectedBranch
+            })
+          });
+          if (res.ok) {
+            successCount++;
+          } else {
+            errorCount++;
+          }
+        } catch (err) {
+          errorCount++;
+        }
+      }
+      await loadVariables(selectedBranch);
+      loadProjectStatus();
+      if (errorCount === 0) {
+        setNotification({
+          type: "success",
+          message: `Successfully imported ${successCount} variable${successCount !== 1 ? "s" : ""}!`
+        });
+        playSound("powerup");
+      } else {
+        setNotification({
+          type: "error",
+          message: `Imported ${successCount} variable${successCount !== 1 ? "s" : ""}, ${errorCount} failed`
+        });
+        playSound("error");
+      }
+      setTimeout(() => setNotification(null), 5e3);
+    } catch (err) {
+      setNotification({ type: "error", message: "Import failed" });
+      setTimeout(() => setNotification(null), 5e3);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   const playSound = (type) => {
-    new Audio();
   };
   if (!isAuthenticated) {
     return /* @__PURE__ */ jsx("div", { className: "min-h-screen flex items-center justify-center p-4", children: /* @__PURE__ */ jsxs(Card, { className: "w-full max-w-md border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]", children: [
@@ -1950,8 +2403,19 @@ function EnvManager8Bit({ project, onBack, skipAuth = false, onBranchChange, ini
             )
           ] }),
           activeTab === "variables" && /* @__PURE__ */ jsxs("div", { className: "flex gap-2", children: [
-            /* @__PURE__ */ jsx(Button, { size: "sm", variant: "outline", children: /* @__PURE__ */ jsx(Download, { className: "h-4 w-4" }) }),
-            /* @__PURE__ */ jsx(Button, { size: "sm", variant: "outline", children: /* @__PURE__ */ jsx(Upload, { className: "h-4 w-4" }) }),
+            /* @__PURE__ */ jsxs(
+              Button,
+              {
+                size: "sm",
+                variant: "outline",
+                onClick: () => setShowImportExport(true),
+                title: "Import/Export Variables",
+                children: [
+                  /* @__PURE__ */ jsx(FileInput, { className: "h-4 w-4 mr-1" }),
+                  /* @__PURE__ */ jsx(FileOutput, { className: "h-4 w-4" })
+                ]
+              }
+            ),
             /* @__PURE__ */ jsx(Button, { size: "sm", variant: "outline", onClick: refreshVariables, children: /* @__PURE__ */ jsx(RefreshCw, { className: "h-4 w-4" }) })
           ] })
         ] }),
@@ -2019,10 +2483,8 @@ function EnvManager8Bit({ project, onBack, skipAuth = false, onBranchChange, ini
             projectPath: currentProject?.path,
             onPublish: () => {
               loadVariables(selectedBranch);
-              playSound();
             },
             onDiscard: () => {
-              playSound();
             },
             playSound
           }
@@ -2033,13 +2495,24 @@ function EnvManager8Bit({ project, onBack, skipAuth = false, onBranchChange, ini
             projectPath: currentProject?.path,
             onRestoreVersion: () => {
               setActiveTab("draft");
-              playSound();
             },
             playSound
           }
         )
       ] })
-    ] })
+    ] }),
+    /* @__PURE__ */ jsx(
+      ImportExportDialog,
+      {
+        isOpen: showImportExport,
+        onClose: () => setShowImportExport(false),
+        projectPath: currentProject?.path,
+        branch: selectedBranch,
+        onImport: handleImportVariables,
+        requiredVariables: projectStatus?.missing || [],
+        existingVariables: variables
+      }
+    )
   ] });
 }
 
