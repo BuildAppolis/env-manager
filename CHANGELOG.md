@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.1] - 2025-08-19
+
+### Fixed
+- Password masking clarification - asterisks display correctly in TTY mode
+- Project tooltip now shows full path on hover
+- Improved error messages for password setup
+
+### Changed
+- Minor UI improvements in ProjectSelector component
+
 ## [1.4.0] - 2025-08-19
 
 ### Added
