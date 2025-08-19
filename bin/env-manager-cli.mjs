@@ -542,23 +542,26 @@ async function startService(options = {}) {
     console.log()
   }
   
-  // Build first
-  log('📦 Building...', colors.cyan)
-  const buildProcess = spawn('npm', ['run', 'build'], {
-    cwd: envManagerPath,
-    stdio: 'inherit',
-    env: {
-      ...process.env,
-      PROJECT_ROOT: projectRoot
-    }
-  })
-  
-  await new Promise((resolve, reject) => {
-    buildProcess.on('close', (code) => {
-      if (code === 0) resolve()
-      else reject(new Error(`Build failed with code ${code}`))
+  // Check if dist folder exists or rebuild is requested
+  const distPath = path.join(envManagerPath, 'dist')
+  if (!fs.existsSync(distPath) || options.rebuild) {
+    log('⚠️  Distribution files not found. Building...', colors.yellow)
+    const buildProcess = spawn('npm', ['run', 'build'], {
+      cwd: envManagerPath,
+      stdio: 'inherit',
+      env: {
+        ...process.env,
+        PROJECT_ROOT: projectRoot
+      }
     })
-  })
+    
+    await new Promise((resolve, reject) => {
+      buildProcess.on('close', (code) => {
+        if (code === 0) resolve()
+        else reject(new Error(`Build failed with code ${code}`))
+      })
+    })
+  }
   
   // Start the server
   log('🚀 Starting server...', colors.cyan)
@@ -786,6 +789,7 @@ program
   .command('start')
   .description('Start the env-manager service')
   .option('-p, --project <path>', 'Project directory path')
+  .option('--rebuild', 'Force rebuild before starting')
   .action(startService)
 
 program

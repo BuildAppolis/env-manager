@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.5] - 2025-08-19
+
+### Fixed
+- **Critical fix for startup crashes when used as npm dependency**
+  - Skip unnecessary rebuilds when dist folder exists
+  - Use pre-built distribution files from npm package
+  - Add `--rebuild` flag for forced rebuilds when needed
+- Resolved EISDIR error when trying to read API directories as files
+- Fixed build process when running from node_modules
+
 ## [1.4.4] - 2025-08-19
 
 ### Fixed
