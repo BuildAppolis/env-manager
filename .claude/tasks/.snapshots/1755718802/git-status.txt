@@ -1,0 +1,61 @@
+A  .claude/file-tracking/archive/20250820_143855_Task__generate_types.log
+MM .claude/tasks/.last-task
+MM .claude/tasks/.task-history.log
+M  .claude/tasks/.validation-cache
+M  .claude/tasks/.validation-log
+ M .claude/tasks/COMPLETED.md
+ M .claude/tasks/IN-PROGRESS.md
+M  bin/env-manager-cli.mjs
+A  bin/env-manager-types.mjs
+M  dist/server/entry.mjs
+R  dist/server/manifest_BZVC1Yof.mjs -> dist/server/manifest_DYnk41aq.mjs
+ D node_modules/.vite/deps_temp_e5c54095/@astrojs_react_client__js.js
+ D node_modules/.vite/deps_temp_e5c54095/@astrojs_react_client__js.js.map
+ D node_modules/.vite/deps_temp_e5c54095/@radix-ui_react-dialog.js
+ D node_modules/.vite/deps_temp_e5c54095/@radix-ui_react-dialog.js.map
+ D node_modules/.vite/deps_temp_e5c54095/@radix-ui_react-label.js
+ D node_modules/.vite/deps_temp_e5c54095/@radix-ui_react-label.js.map
+ D node_modules/.vite/deps_temp_e5c54095/@radix-ui_react-select.js
+ D node_modules/.vite/deps_temp_e5c54095/@radix-ui_react-select.js.map
+ D node_modules/.vite/deps_temp_e5c54095/@radix-ui_react-slot.js
+ D node_modules/.vite/deps_temp_e5c54095/@radix-ui_react-slot.js.map
+ D node_modules/.vite/deps_temp_e5c54095/astro___aria-query.js
+ D node_modules/.vite/deps_temp_e5c54095/astro___aria-query.js.map
+ D node_modules/.vite/deps_temp_e5c54095/astro___axobject-query.js
+ D node_modules/.vite/deps_temp_e5c54095/astro___axobject-query.js.map
+ D node_modules/.vite/deps_temp_e5c54095/astro___cssesc.js
+ D node_modules/.vite/deps_temp_e5c54095/astro___cssesc.js.map
+ D node_modules/.vite/deps_temp_e5c54095/chunk-575JY5N6.js
+ D node_modules/.vite/deps_temp_e5c54095/chunk-575JY5N6.js.map
+ D node_modules/.vite/deps_temp_e5c54095/chunk-BPP2D3V2.js
+ D node_modules/.vite/deps_temp_e5c54095/chunk-BPP2D3V2.js.map
+ D node_modules/.vite/deps_temp_e5c54095/chunk-DEX2RCYB.js
+ D node_modules/.vite/deps_temp_e5c54095/chunk-DEX2RCYB.js.map
+ D node_modules/.vite/deps_temp_e5c54095/chunk-G3PMV62Z.js
+ D node_modules/.vite/deps_temp_e5c54095/chunk-G3PMV62Z.js.map
+ D node_modules/.vite/deps_temp_e5c54095/chunk-KJDEYXU2.js
+ D node_modules/.vite/deps_temp_e5c54095/chunk-KJDEYXU2.js.map
+ D node_modules/.vite/deps_temp_e5c54095/chunk-KJYSAOIG.js
+ D node_modules/.vite/deps_temp_e5c54095/chunk-KJYSAOIG.js.map
+ D node_modules/.vite/deps_temp_e5c54095/chunk-NQXXYIIP.js
+ D node_modules/.vite/deps_temp_e5c54095/chunk-NQXXYIIP.js.map
+ D node_modules/.vite/deps_temp_e5c54095/chunk-WU2RXSNL.js
+ D node_modules/.vite/deps_temp_e5c54095/chunk-WU2RXSNL.js.map
+ D node_modules/.vite/deps_temp_e5c54095/class-variance-authority.js
+ D node_modules/.vite/deps_temp_e5c54095/class-variance-authority.js.map
+ D node_modules/.vite/deps_temp_e5c54095/clsx.js
+ D node_modules/.vite/deps_temp_e5c54095/clsx.js.map
+ D node_modules/.vite/deps_temp_e5c54095/lucide-react.js
+ D node_modules/.vite/deps_temp_e5c54095/lucide-react.js.map
+ D node_modules/.vite/deps_temp_e5c54095/package.json
+ D node_modules/.vite/deps_temp_e5c54095/react-dom.js
+ D node_modules/.vite/deps_temp_e5c54095/react-dom.js.map
+ D node_modules/.vite/deps_temp_e5c54095/react.js
+ D node_modules/.vite/deps_temp_e5c54095/react.js.map
+ D node_modules/.vite/deps_temp_e5c54095/react_jsx-dev-runtime.js
+ D node_modules/.vite/deps_temp_e5c54095/react_jsx-dev-runtime.js.map
+ D node_modules/.vite/deps_temp_e5c54095/react_jsx-runtime.js
+ D node_modules/.vite/deps_temp_e5c54095/react_jsx-runtime.js.map
+ D node_modules/.vite/deps_temp_e5c54095/tailwind-merge.js
+ D node_modules/.vite/deps_temp_e5c54095/tailwind-merge.js.map
+?? .claude/tasks/.snapshots/1755718802/

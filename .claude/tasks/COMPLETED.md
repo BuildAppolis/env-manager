@@ -9,13 +9,6 @@ Tasks that have been completed but not yet released. These will be moved to RELE
 
 ---
 *Last Updated: 2025-08-20*
-### [🔒] Fix critical form-data vulnerability (unsafe random function)
-**Category:** Security  
-**Priority:** High  
-**Added:** 2025-08-20  
-
-
-## Medium Priority
 ### [🔒] Fix high severity ssri ReDoS vulnerability
 **Category:** Security  
 **Priority:** High  
@@ -40,3 +33,10 @@ Tasks that have been completed but not yet released. These will be moved to RELE
 **Category:** Security  
 **Priority:** Medium  
 **Added:** 2025-08-20  
+### [🔒] Fix critical form-data vulnerability (unsafe random function)
+**Category:** Security  
+**Priority:** High  
+**Added:** 2025-08-20  
+
+
+## Medium Priority

@@ -29,8 +29,26 @@ export default class EnvDatabase {
   private encryptionKey: string | null = null
 
   constructor(dbPath?: string) {
-    const projectRoot = process.env.PROJECT_ROOT || process.cwd()
-    this.dbPath = dbPath || path.join(projectRoot, 'env-data.json')
+    // SECURITY FIX: Store database in secure home directory, NOT in project directory
+    if (dbPath) {
+      this.dbPath = dbPath
+    } else {
+      // Get project name from environment or current directory
+      const projectRoot = process.env.PROJECT_ROOT || process.cwd()
+      const projectName = path.basename(projectRoot)
+      
+      // Store in secure location in user's home directory
+      const dataDir = path.join(os.homedir(), '.env-manager-data')
+      
+      // Ensure the directory exists
+      if (!fsSync.existsSync(dataDir)) {
+        fsSync.mkdirSync(dataDir, { recursive: true, mode: 0o700 }) // Secure permissions
+      }
+      
+      // Database file path with project name
+      this.dbPath = path.join(dataDir, `${projectName}.db`)
+    }
+    
     this.data = {
       variables: [],
       history: [],
@@ -46,8 +64,29 @@ export default class EnvDatabase {
 
   private async loadData(): Promise<void> {
     try {
+      // Check if file exists and has proper permissions
+      const stats = await fs.stat(this.dbPath)
+      
+      // Verify secure permissions (owner read/write only)
+      if ((stats.mode & 0o777) !== 0o600) {
+        // Fix permissions if they're wrong
+        await fs.chmod(this.dbPath, 0o600)
+      }
+      
       const fileContent = await fs.readFile(this.dbPath, 'utf-8')
-      this.data = JSON.parse(fileContent)
+      
+      // Check if file is encrypted (starts with ENCRYPTED:)
+      if (fileContent.startsWith('ENCRYPTED:')) {
+        // Decrypt the entire database
+        const encryptedData = fileContent.substring(10) // Remove 'ENCRYPTED:' prefix
+        const decryptedContent = this.decryptDatabase(encryptedData)
+        this.data = JSON.parse(decryptedContent)
+      } else {
+        // Legacy unencrypted format (for migration)
+        this.data = JSON.parse(fileContent)
+        // Re-save as encrypted
+        await this.saveData()
+      }
     } catch (error) {
       // File doesn't exist or is invalid, start with empty data
       await this.saveData()
@@ -56,11 +95,70 @@ export default class EnvDatabase {
 
   private async saveData(): Promise<void> {
     try {
-      await fs.writeFile(this.dbPath, JSON.stringify(this.data, null, 2))
+      // Always encrypt the entire database when saving
+      const jsonData = JSON.stringify(this.data, null, 2)
+      const encryptedData = this.encryptDatabase(jsonData)
+      const fileContent = 'ENCRYPTED:' + encryptedData
+      
+      // Write with secure permissions (owner read/write only)
+      await fs.writeFile(this.dbPath, fileContent, { mode: 0o600 })
     } catch (error) {
       console.error('Failed to save database:', error)
       throw error
     }
+  }
+  
+  private encryptDatabase(content: string): string {
+    // Use a system-wide encryption key derived from machine ID and user
+    const systemKey = this.getSystemEncryptionKey()
+    
+    const iv = crypto.randomBytes(16)
+    const cipher = crypto.createCipheriv('aes-256-gcm', systemKey, iv)
+    
+    let encrypted = cipher.update(content, 'utf8', 'hex')
+    encrypted += cipher.final('hex')
+    
+    const authTag = cipher.getAuthTag()
+    
+    // Return IV + authTag + encrypted data
+    return iv.toString('hex') + ':' + authTag.toString('hex') + ':' + encrypted
+  }
+  
+  private decryptDatabase(encryptedData: string): string {
+    const systemKey = this.getSystemEncryptionKey()
+    
+    const parts = encryptedData.split(':')
+    if (parts.length !== 3) {
+      throw new Error('Invalid encrypted database format')
+    }
+    
+    const iv = Buffer.from(parts[0], 'hex')
+    const authTag = Buffer.from(parts[1], 'hex')
+    const encrypted = parts[2]
+    
+    const decipher = crypto.createDecipheriv('aes-256-gcm', systemKey, iv)
+    decipher.setAuthTag(authTag)
+    
+    let decrypted = decipher.update(encrypted, 'hex', 'utf8')
+    decrypted += decipher.final('utf8')
+    
+    return decrypted
+  }
+  
+  private getSystemEncryptionKey(): Buffer {
+    // Derive a unique key based on:
+    // 1. Machine hostname
+    // 2. User home directory
+    // 3. A fixed salt for this application
+    const hostname = os.hostname()
+    const homedir = os.homedir()
+    const appSalt = 'env-manager-v1-secure-2024'
+    
+    // Combine into a unique seed
+    const seed = `${hostname}:${homedir}:${appSalt}`
+    
+    // Derive a 256-bit key
+    return crypto.pbkdf2Sync(seed, 'env-manager-db-encryption', 100000, 32, 'sha256')
   }
 
   private generateSalt(): string {

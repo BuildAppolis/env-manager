@@ -1,4 +1,4 @@
-import { g as getDatabase } from '../../chunks/session_DKC9ty2U.mjs';
+import { g as getDatabase } from '../../chunks/session_Czm17L6L.mjs';
 import { g as getGitUtils } from '../../chunks/git-utils_B6WJYd3b.mjs';
 import path from 'path';
 export { renderers } from '../../renderers.mjs';

@@ -21,3 +21,7 @@
 2025-08-20 12:15:40|MOVE|Fix tough-cookie Prototype Pollution vulnerability|TODO|COMPLETED
 2025-08-20 12:15:41|MOVE|Fix request package SSRF vulnerability|TODO|COMPLETED
 2025-08-20 12:19:37|ADD|Test AI-friendly task completion||TODO
+2025-08-20 14:34:49|ADD|Add generate-types command to CLI||TODO
+2025-08-20 14:39:55|ADD|CRITICAL: Fix security issue - env-data.json stored in project directory||TODO
+2025-08-20 14:40:02|MOVE|Fix critical form-data vulnerability (unsafe random function)|COMPLETED|IN-PROGRESS
+2025-08-20 14:42:03|MOVE|Fix critical form-data vulnerability (unsafe random function)|IN-PROGRESS|COMPLETED

@@ -925,6 +925,35 @@ program
   })
 
 program
+  .command('generate-types')
+  .description('Generate TypeScript type definitions for environment variables')
+  .option('-o, --output <dir>', 'Output directory for generated types', '.')
+  .option('-p, --project <path>', 'Project directory path', process.cwd())
+  .action(async (options) => {
+    // Use the standalone types generator script
+    const { spawn } = await import('child_process')
+    const typesGeneratorPath = path.join(__dirname, 'env-manager-types.mjs')
+    
+    // Build arguments for the types generator
+    const args = []
+    if (options.project && options.project !== process.cwd()) {
+      args.push('-p', options.project)
+    }
+    if (options.output && options.output !== '.') {
+      args.push('-o', options.output)
+    }
+    
+    // Execute the types generator
+    const child = spawn('node', [typesGeneratorPath, ...args], {
+      stdio: 'inherit'
+    })
+    
+    child.on('exit', (code) => {
+      process.exit(code || 0)
+    })
+  })
+
+program
   .command('version [action] [target]')
   .description('Switch between production and local versions')
   .action(async (action, target) => {

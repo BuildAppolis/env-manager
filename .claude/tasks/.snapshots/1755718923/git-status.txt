@@ -1,0 +1,91 @@
+A  .claude/file-tracking/archive/20250820_143855_Task__generate_types.log
+MM .claude/tasks/.last-task
+ M .claude/tasks/.snapshots/snapshot.log
+MM .claude/tasks/.task-history.log
+M  .claude/tasks/.validation-cache
+M  .claude/tasks/.validation-log
+ M .claude/tasks/COMPLETED.md
+M  bin/env-manager-cli.mjs
+A  bin/env-manager-types.mjs
+ D dist/client/_astro/_slug_.BT7j3MZf.css
+ D dist/server/chunks/VersionFooter_DouKV3Jd.mjs
+ D dist/server/chunks/session_DKC9ty2U.mjs
+MM dist/server/entry.mjs
+RD dist/server/manifest_BZVC1Yof.mjs -> dist/server/manifest_DYnk41aq.mjs
+ M dist/server/pages/_---slug_.astro.mjs
+ M dist/server/pages/api/auth.astro.mjs
+ M dist/server/pages/api/auth/status.astro.mjs
+ M dist/server/pages/api/branches.astro.mjs
+ M dist/server/pages/api/draft.astro.mjs
+ M dist/server/pages/api/export-types.astro.mjs
+ M dist/server/pages/api/export.astro.mjs
+ M dist/server/pages/api/generate-secret.astro.mjs
+ M dist/server/pages/api/hot-reload.astro.mjs
+ M dist/server/pages/api/project/status.astro.mjs
+ M dist/server/pages/api/project/variable-config.astro.mjs
+ M dist/server/pages/api/snapshots.astro.mjs
+ M dist/server/pages/api/snapshots/_id_.astro.mjs
+ M dist/server/pages/api/snapshots/_id_/restore.astro.mjs
+ M dist/server/pages/api/variables.astro.mjs
+ M dist/server/pages/api/versions.astro.mjs
+ M dist/server/pages/api/versions/restore.astro.mjs
+ M dist/server/pages/index.astro.mjs
+ D node_modules/.vite/deps_temp_e5c54095/@astrojs_react_client__js.js
+ D node_modules/.vite/deps_temp_e5c54095/@astrojs_react_client__js.js.map
+ D node_modules/.vite/deps_temp_e5c54095/@radix-ui_react-dialog.js
+ D node_modules/.vite/deps_temp_e5c54095/@radix-ui_react-dialog.js.map
+ D node_modules/.vite/deps_temp_e5c54095/@radix-ui_react-label.js
+ D node_modules/.vite/deps_temp_e5c54095/@radix-ui_react-label.js.map
+ D node_modules/.vite/deps_temp_e5c54095/@radix-ui_react-select.js
+ D node_modules/.vite/deps_temp_e5c54095/@radix-ui_react-select.js.map
+ D node_modules/.vite/deps_temp_e5c54095/@radix-ui_react-slot.js
+ D node_modules/.vite/deps_temp_e5c54095/@radix-ui_react-slot.js.map
+ D node_modules/.vite/deps_temp_e5c54095/astro___aria-query.js
+ D node_modules/.vite/deps_temp_e5c54095/astro___aria-query.js.map
+ D node_modules/.vite/deps_temp_e5c54095/astro___axobject-query.js
+ D node_modules/.vite/deps_temp_e5c54095/astro___axobject-query.js.map
+ D node_modules/.vite/deps_temp_e5c54095/astro___cssesc.js
+ D node_modules/.vite/deps_temp_e5c54095/astro___cssesc.js.map
+ D node_modules/.vite/deps_temp_e5c54095/chunk-575JY5N6.js
+ D node_modules/.vite/deps_temp_e5c54095/chunk-575JY5N6.js.map
+ D node_modules/.vite/deps_temp_e5c54095/chunk-BPP2D3V2.js
+ D node_modules/.vite/deps_temp_e5c54095/chunk-BPP2D3V2.js.map
+ D node_modules/.vite/deps_temp_e5c54095/chunk-DEX2RCYB.js
+ D node_modules/.vite/deps_temp_e5c54095/chunk-DEX2RCYB.js.map
+ D node_modules/.vite/deps_temp_e5c54095/chunk-G3PMV62Z.js
+ D node_modules/.vite/deps_temp_e5c54095/chunk-G3PMV62Z.js.map
+ D node_modules/.vite/deps_temp_e5c54095/chunk-KJDEYXU2.js
+ D node_modules/.vite/deps_temp_e5c54095/chunk-KJDEYXU2.js.map
+ D node_modules/.vite/deps_temp_e5c54095/chunk-KJYSAOIG.js
+ D node_modules/.vite/deps_temp_e5c54095/chunk-KJYSAOIG.js.map
+ D node_modules/.vite/deps_temp_e5c54095/chunk-NQXXYIIP.js
+ D node_modules/.vite/deps_temp_e5c54095/chunk-NQXXYIIP.js.map
+ D node_modules/.vite/deps_temp_e5c54095/chunk-WU2RXSNL.js
+ D node_modules/.vite/deps_temp_e5c54095/chunk-WU2RXSNL.js.map
+ D node_modules/.vite/deps_temp_e5c54095/class-variance-authority.js
+ D node_modules/.vite/deps_temp_e5c54095/class-variance-authority.js.map
+ D node_modules/.vite/deps_temp_e5c54095/clsx.js
+ D node_modules/.vite/deps_temp_e5c54095/clsx.js.map
+ D node_modules/.vite/deps_temp_e5c54095/lucide-react.js
+ D node_modules/.vite/deps_temp_e5c54095/lucide-react.js.map
+ D node_modules/.vite/deps_temp_e5c54095/package.json
+ D node_modules/.vite/deps_temp_e5c54095/react-dom.js
+ D node_modules/.vite/deps_temp_e5c54095/react-dom.js.map
+ D node_modules/.vite/deps_temp_e5c54095/react.js
+ D node_modules/.vite/deps_temp_e5c54095/react.js.map
+ D node_modules/.vite/deps_temp_e5c54095/react_jsx-dev-runtime.js
+ D node_modules/.vite/deps_temp_e5c54095/react_jsx-dev-runtime.js.map
+ D node_modules/.vite/deps_temp_e5c54095/react_jsx-runtime.js
+ D node_modules/.vite/deps_temp_e5c54095/react_jsx-runtime.js.map
+ D node_modules/.vite/deps_temp_e5c54095/tailwind-merge.js
+ D node_modules/.vite/deps_temp_e5c54095/tailwind-merge.js.map
+ M src/lib/database.ts
+ M src/lib/session.ts
+?? .claude/file-tracking/archive/20250820_144203_Task__CRITICAL.log
+?? .claude/tasks/.snapshots/1755718802/
+?? .claude/tasks/.snapshots/1755718923/
+?? dist/client/_astro/_slug_.CTuA8gvl.css
+?? dist/server/chunks/VersionFooter_DwRyrBTe.mjs
+?? dist/server/chunks/session_Czm17L6L.mjs
+?? dist/server/manifest_BUL5HrGa.mjs
+?? src/lib/migrate-database.ts
