@@ -163,8 +163,9 @@ export const PUT: APIRoute = async ({ request, url }) => {
     const projectPath = url.searchParams.get('projectPath');
     const database = getDatabase(projectPath || undefined);
     
-    // Check if password exists
-    const hasPassword = database.hasPassword();
+    // Check if password exists (by checking if salt and hash exist)
+    const dbData = (database as any).data;
+    const hasPassword = !!(dbData.auth?.passwordHash && dbData.auth?.salt);
     
     const variable = await request.json();
     
@@ -222,9 +223,10 @@ export const PUT: APIRoute = async ({ request, url }) => {
     }
     
     // Trigger hot reload if configured
-    const hotReloadManager = getHotReloadManager(projectPath || undefined);
-    if (hotReloadManager.isEnabled()) {
-      hotReloadManager.triggerReload('variables');
+    const hotReloadManager = getHotReloadManager();
+    const hotReloadConfig = (hotReloadManager as any).config;
+    if (hotReloadConfig?.enabled) {
+      hotReloadManager.triggerReload({ type: 'variables_changed', timestamp: Date.now() });
     }
     
     return new Response(JSON.stringify(result), {

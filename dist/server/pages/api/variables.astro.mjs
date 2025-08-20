@@ -125,7 +125,8 @@ const PUT = async ({ request, url }) => {
   try {
     const projectPath = url.searchParams.get("projectPath");
     const database = getDatabase(projectPath || void 0);
-    const hasPassword = database.hasPassword();
+    const dbData = database.data;
+    const hasPassword = !!(dbData.auth?.passwordHash && dbData.auth?.salt);
     const variable = await request.json();
     if (!variable.branch) {
       const projectRoot = projectPath || process.env.PROJECT_ROOT || path.resolve(process.cwd(), "..");
@@ -138,31 +139,31 @@ const PUT = async ({ request, url }) => {
       result = database.updateVariable(variable.name, variable.value, variable);
     } catch (updateError) {
       if (updateError.message === "Not authenticated" && !hasPassword) {
-        const dbData = database.data;
+        const dbData2 = database.data;
         const now = (/* @__PURE__ */ new Date()).toISOString();
-        const existingIndex = dbData.variables?.findIndex(
+        const existingIndex = dbData2.variables?.findIndex(
           (v) => v.name === variable.name && v.branch === variable.branch
         );
         if (existingIndex >= 0) {
-          dbData.variables[existingIndex] = {
-            ...dbData.variables[existingIndex],
+          dbData2.variables[existingIndex] = {
+            ...dbData2.variables[existingIndex],
             value: variable.value,
-            description: variable.description || dbData.variables[existingIndex].description,
-            sensitive: variable.sensitive !== void 0 ? variable.sensitive : dbData.variables[existingIndex].sensitive,
-            category: variable.category || dbData.variables[existingIndex].category,
+            description: variable.description || dbData2.variables[existingIndex].description,
+            sensitive: variable.sensitive !== void 0 ? variable.sensitive : dbData2.variables[existingIndex].sensitive,
+            category: variable.category || dbData2.variables[existingIndex].category,
             updatedAt: now
           };
-          dbData.history = dbData.history || [];
-          dbData.history.push({
+          dbData2.history = dbData2.history || [];
+          dbData2.history.push({
             id: crypto.randomUUID(),
             action: "update",
             variableName: variable.name,
-            oldValue: dbData.variables[existingIndex].value,
+            oldValue: dbData2.variables[existingIndex].value,
             newValue: variable.value,
             timestamp: now
           });
           await database.saveData();
-          result = dbData.variables[existingIndex];
+          result = dbData2.variables[existingIndex];
         } else {
           throw new Error("Variable not found");
         }
@@ -170,9 +171,10 @@ const PUT = async ({ request, url }) => {
         throw updateError;
       }
     }
-    const hotReloadManager = getHotReloadManager(projectPath || void 0);
-    if (hotReloadManager.isEnabled()) {
-      hotReloadManager.triggerReload("variables");
+    const hotReloadManager = getHotReloadManager();
+    const hotReloadConfig = hotReloadManager.config;
+    if (hotReloadConfig?.enabled) {
+      hotReloadManager.triggerReload({ type: "variables_changed", timestamp: Date.now() });
     }
     return new Response(JSON.stringify(result), {
       status: 200,

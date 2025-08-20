@@ -1,5 +1,5 @@
 import { c as createComponent, a as createAstro, d as renderComponent, r as renderTemplate, m as maybeRenderHead } from '../chunks/astro/server_DE_7F_eO.mjs';
-import { $ as $$Layout8Bit, V as VersionFooter } from '../chunks/VersionFooter_B4W5GPCR.mjs';
+import { $ as $$Layout8Bit, V as VersionFooter } from '../chunks/VersionFooter_6LW8x2WP.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import { useState, useEffect, useRef } from 'react';
 import { cva } from 'class-variance-authority';
@@ -8,9 +8,9 @@ import { twMerge } from 'tailwind-merge';
 import { Slot } from '@radix-ui/react-slot';
 /* empty css                                  */
 import * as LabelPrimitive from '@radix-ui/react-label';
-import * as SelectPrimitive from '@radix-ui/react-select';
-import { ChevronDownIcon, CheckIcon, ChevronUpIcon, XIcon, History, ChevronDown, ChevronRight, GitBranch, Clock, User, Package, FileText, FileEdit, Plus, X, GitCommit, Save, AlertTriangle, Edit3, EyeOff, Eye, Trash2, Download, Upload, FileDown, Check, Copy, Info, FileUp, AlertCircle, Unlock, FolderOpen, Database, Key, Shield, Terminal, FileInput, FileOutput, RefreshCw, Lock } from 'lucide-react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
+import { XIcon, ChevronDownIcon, CheckIcon, ChevronUpIcon, History, ChevronDown, ChevronRight, GitBranch, Clock, User, Package, FileText, FileEdit, Plus, X, GitCommit, Save, AlertTriangle, Edit3, EyeOff, Eye, Trash2, Download, Upload, FileDown, Check, Copy, Info, FileUp, AlertCircle, Unlock, FolderOpen, Database, Key, Sparkles, Shield, Terminal, FileInput, FileOutput, FileCode, RefreshCw, Lock } from 'lucide-react';
+import * as SelectPrimitive from '@radix-ui/react-select';
 /* empty css                                  */
 import fs from 'fs';
 import path from 'path';
@@ -405,6 +405,170 @@ function Label({ className, font, ...props }) {
   );
 }
 
+function Dialog$1({
+  ...props
+}) {
+  return /* @__PURE__ */ jsx(DialogPrimitive.Root, { "data-slot": "dialog", ...props });
+}
+function DialogTrigger$1({
+  ...props
+}) {
+  return /* @__PURE__ */ jsx(DialogPrimitive.Trigger, { "data-slot": "dialog-trigger", ...props });
+}
+function DialogPortal({
+  ...props
+}) {
+  return /* @__PURE__ */ jsx(DialogPrimitive.Portal, { "data-slot": "dialog-portal", ...props });
+}
+function DialogOverlay({
+  className,
+  ...props
+}) {
+  return /* @__PURE__ */ jsx(
+    DialogPrimitive.Overlay,
+    {
+      "data-slot": "dialog-overlay",
+      className: cn(
+        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
+        className
+      ),
+      ...props
+    }
+  );
+}
+function DialogContent$1({
+  className,
+  children,
+  showCloseButton = true,
+  ...props
+}) {
+  return /* @__PURE__ */ jsxs(DialogPortal, { "data-slot": "dialog-portal", children: [
+    /* @__PURE__ */ jsx(DialogOverlay, {}),
+    /* @__PURE__ */ jsxs(
+      DialogPrimitive.Content,
+      {
+        "data-slot": "dialog-content",
+        className: cn(
+          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",
+          className
+        ),
+        ...props,
+        children: [
+          children,
+          showCloseButton && /* @__PURE__ */ jsxs(
+            DialogPrimitive.Close,
+            {
+              "data-slot": "dialog-close",
+              className: "ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+              children: [
+                /* @__PURE__ */ jsx(XIcon, {}),
+                /* @__PURE__ */ jsx("span", { className: "sr-only", children: "Close" })
+              ]
+            }
+          )
+        ]
+      }
+    )
+  ] });
+}
+function DialogHeader$1({ className, ...props }) {
+  return /* @__PURE__ */ jsx(
+    "div",
+    {
+      "data-slot": "dialog-header",
+      className: cn("flex flex-col gap-2 text-center sm:text-left", className),
+      ...props
+    }
+  );
+}
+function DialogTitle$1({
+  className,
+  ...props
+}) {
+  return /* @__PURE__ */ jsx(
+    DialogPrimitive.Title,
+    {
+      "data-slot": "dialog-title",
+      className: cn("text-lg leading-none font-semibold", className),
+      ...props
+    }
+  );
+}
+function DialogDescription$1({
+  className,
+  ...props
+}) {
+  return /* @__PURE__ */ jsx(
+    DialogPrimitive.Description,
+    {
+      "data-slot": "dialog-description",
+      className: cn("text-muted-foreground text-sm", className),
+      ...props
+    }
+  );
+}
+
+const Dialog = Dialog$1;
+const DialogTrigger = DialogTrigger$1;
+const DialogHeader = DialogHeader$1;
+const DialogDescription = DialogDescription$1;
+function DialogTitle({ ...props }) {
+  const { className, font } = props;
+  return /* @__PURE__ */ jsx(
+    DialogTitle$1,
+    {
+      className: cn(font !== "normal" && "retro", className),
+      ...props
+    }
+  );
+}
+cva("", {
+  variants: {
+    font: {
+      normal: "",
+      retro: "retro"
+    }
+  },
+  defaultVariants: {
+    font: "retro"
+  }
+});
+function DialogContent({
+  className,
+  children,
+  font,
+  ...props
+}) {
+  return /* @__PURE__ */ jsxs(
+    DialogContent$1,
+    {
+      className: cn(
+        "bg-card rounded-none border-none",
+        font !== "normal" && "retro",
+        className
+      ),
+      ...props,
+      children: [
+        children,
+        /* @__PURE__ */ jsx(
+          "div",
+          {
+            className: "absolute inset-0 border-x-6 -mx-1.5 border-foreground dark:border-ring pointer-events-none",
+            "aria-hidden": "true"
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          "div",
+          {
+            className: "absolute inset-0 border-y-6 -my-1.5 border-foreground dark:border-ring pointer-events-none",
+            "aria-hidden": "true"
+          }
+        )
+      ]
+    }
+  );
+}
+
 function Select$1({
   ...props
 }) {
@@ -710,170 +874,6 @@ function MissingVariableItem({
       isSensitive && /* @__PURE__ */ jsx("div", { className: "flex items-center gap-2 text-xs text-yellow-400", children: /* @__PURE__ */ jsx("span", { children: "⚠️ This value will be encrypted" }) })
     ] })
   ] });
-}
-
-function Dialog$1({
-  ...props
-}) {
-  return /* @__PURE__ */ jsx(DialogPrimitive.Root, { "data-slot": "dialog", ...props });
-}
-function DialogTrigger$1({
-  ...props
-}) {
-  return /* @__PURE__ */ jsx(DialogPrimitive.Trigger, { "data-slot": "dialog-trigger", ...props });
-}
-function DialogPortal({
-  ...props
-}) {
-  return /* @__PURE__ */ jsx(DialogPrimitive.Portal, { "data-slot": "dialog-portal", ...props });
-}
-function DialogOverlay({
-  className,
-  ...props
-}) {
-  return /* @__PURE__ */ jsx(
-    DialogPrimitive.Overlay,
-    {
-      "data-slot": "dialog-overlay",
-      className: cn(
-        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
-        className
-      ),
-      ...props
-    }
-  );
-}
-function DialogContent$1({
-  className,
-  children,
-  showCloseButton = true,
-  ...props
-}) {
-  return /* @__PURE__ */ jsxs(DialogPortal, { "data-slot": "dialog-portal", children: [
-    /* @__PURE__ */ jsx(DialogOverlay, {}),
-    /* @__PURE__ */ jsxs(
-      DialogPrimitive.Content,
-      {
-        "data-slot": "dialog-content",
-        className: cn(
-          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",
-          className
-        ),
-        ...props,
-        children: [
-          children,
-          showCloseButton && /* @__PURE__ */ jsxs(
-            DialogPrimitive.Close,
-            {
-              "data-slot": "dialog-close",
-              className: "ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-              children: [
-                /* @__PURE__ */ jsx(XIcon, {}),
-                /* @__PURE__ */ jsx("span", { className: "sr-only", children: "Close" })
-              ]
-            }
-          )
-        ]
-      }
-    )
-  ] });
-}
-function DialogHeader$1({ className, ...props }) {
-  return /* @__PURE__ */ jsx(
-    "div",
-    {
-      "data-slot": "dialog-header",
-      className: cn("flex flex-col gap-2 text-center sm:text-left", className),
-      ...props
-    }
-  );
-}
-function DialogTitle$1({
-  className,
-  ...props
-}) {
-  return /* @__PURE__ */ jsx(
-    DialogPrimitive.Title,
-    {
-      "data-slot": "dialog-title",
-      className: cn("text-lg leading-none font-semibold", className),
-      ...props
-    }
-  );
-}
-function DialogDescription$1({
-  className,
-  ...props
-}) {
-  return /* @__PURE__ */ jsx(
-    DialogPrimitive.Description,
-    {
-      "data-slot": "dialog-description",
-      className: cn("text-muted-foreground text-sm", className),
-      ...props
-    }
-  );
-}
-
-const Dialog = Dialog$1;
-const DialogTrigger = DialogTrigger$1;
-const DialogHeader = DialogHeader$1;
-const DialogDescription = DialogDescription$1;
-function DialogTitle({ ...props }) {
-  const { className, font } = props;
-  return /* @__PURE__ */ jsx(
-    DialogTitle$1,
-    {
-      className: cn(font !== "normal" && "retro", className),
-      ...props
-    }
-  );
-}
-cva("", {
-  variants: {
-    font: {
-      normal: "",
-      retro: "retro"
-    }
-  },
-  defaultVariants: {
-    font: "retro"
-  }
-});
-function DialogContent({
-  className,
-  children,
-  font,
-  ...props
-}) {
-  return /* @__PURE__ */ jsxs(
-    DialogContent$1,
-    {
-      className: cn(
-        "bg-card rounded-none border-none",
-        font !== "normal" && "retro",
-        className
-      ),
-      ...props,
-      children: [
-        children,
-        /* @__PURE__ */ jsx(
-          "div",
-          {
-            className: "absolute inset-0 border-x-6 -mx-1.5 border-foreground dark:border-ring pointer-events-none",
-            "aria-hidden": "true"
-          }
-        ),
-        /* @__PURE__ */ jsx(
-          "div",
-          {
-            className: "absolute inset-0 border-y-6 -my-1.5 border-foreground dark:border-ring pointer-events-none",
-            "aria-hidden": "true"
-          }
-        )
-      ]
-    }
-  );
 }
 
 function VersionHistory({ projectPath, onRestoreVersion, playSound }) {
@@ -1465,7 +1465,8 @@ function ImportExportDialog({
   branch = "main",
   onImport,
   requiredVariables = [],
-  existingVariables = []
+  existingVariables = [],
+  projectConfig
 }) {
   const [activeTab, setActiveTab] = useState("export");
   const [exportFormat, setExportFormat] = useState(".env");
@@ -1524,6 +1525,17 @@ function ImportExportDialog({
     let currentCategory = "general";
     let lastDescription = "";
     const existingNames = new Set(existingVariables.map((v) => v.name));
+    const configMap = /* @__PURE__ */ new Map();
+    if (projectConfig?.requirements) {
+      for (const [groupName, group] of Object.entries(projectConfig.requirements)) {
+        for (const varConfig of group.variables || []) {
+          configMap.set(varConfig.name, {
+            ...varConfig,
+            category: groupName
+          });
+        }
+      }
+    }
     for (const line of lines) {
       const trimmed = line.trim();
       if (!trimmed) {
@@ -1546,18 +1558,54 @@ function ImportExportDialog({
         if (value.startsWith('"') && value.endsWith('"') || value.startsWith("'") && value.endsWith("'")) {
           cleanValue = value.slice(1, -1);
         }
-        const isSensitive = name.includes("SECRET") || name.includes("KEY") || name.includes("PASSWORD") || name.includes("TOKEN") || name.includes("PRIVATE");
-        variables.push({
-          name,
-          value: cleanValue,
-          description: lastDescription || void 0,
-          category: currentCategory,
-          isRequired: requiredVariables.includes(name),
-          isSensitive,
-          isNew: !existingNames.has(name),
-          isDuplicate: existingNames.has(name)
-        });
+        const configData = configMap.get(name);
+        if (configData) {
+          if (!cleanValue && (configData.default || configData.example)) {
+            cleanValue = configData.default || configData.example || "";
+          }
+          variables.push({
+            name,
+            value: cleanValue,
+            description: configData.description || lastDescription || void 0,
+            category: configData.category || currentCategory,
+            isRequired: configData.required || false,
+            isSensitive: configData.sensitive || false,
+            isNew: !existingNames.has(name),
+            isDuplicate: existingNames.has(name)
+          });
+        } else {
+          const isSensitive = name.includes("SECRET") || name.includes("KEY") || name.includes("PASSWORD") || name.includes("TOKEN") || name.includes("PRIVATE");
+          variables.push({
+            name,
+            value: cleanValue,
+            description: lastDescription || void 0,
+            category: currentCategory,
+            isRequired: requiredVariables.includes(name),
+            isSensitive,
+            isNew: !existingNames.has(name),
+            isDuplicate: existingNames.has(name)
+          });
+        }
         lastDescription = "";
+      }
+    }
+    if (projectConfig?.requirements) {
+      for (const [groupName, group] of Object.entries(projectConfig.requirements)) {
+        for (const varConfig of group.variables || []) {
+          const imported = variables.find((v) => v.name === varConfig.name);
+          if (varConfig.required && !imported) {
+            variables.push({
+              name: varConfig.name,
+              value: varConfig.default || varConfig.example || "",
+              description: varConfig.description,
+              category: groupName,
+              isRequired: true,
+              isSensitive: varConfig.sensitive || false,
+              isNew: !existingNames.has(varConfig.name),
+              isDuplicate: false
+            });
+          }
+        }
       }
     }
     return variables;
@@ -1867,6 +1915,9 @@ function EnvManager8Bit({ project, onBack, skipAuth = false, onBranchChange, ini
   const [currentProject, setCurrentProject] = useState(project || null);
   const [projectStatus, setProjectStatus] = useState(null);
   const [showImportExport, setShowImportExport] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [showExportTypes, setShowExportTypes] = useState(false);
+  const [typeExportContent, setTypeExportContent] = useState("");
   useEffect(() => {
     if (!skipAuth) {
       checkAuthStatus();
@@ -1972,6 +2023,40 @@ function EnvManager8Bit({ project, onBack, skipAuth = false, onBranchChange, ini
   const refreshVariables = () => {
     loadVariables(selectedBranch);
   };
+  const handleGenerateSecret = async () => {
+    if (!newVar.name) {
+      setNotification({ type: "error", message: "Please enter a variable name first" });
+      setTimeout(() => setNotification(null), 3e3);
+      return;
+    }
+    setIsGenerating(true);
+    try {
+      const res = await fetch("/api/generate-secret", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          variableName: newVar.name,
+          projectPath: currentProject?.path
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setNewVar({ ...newVar, value: data.value });
+        playSound("powerup");
+        setNotification({ type: "success", message: `Generated ${data.type} secret for ${newVar.name}` });
+        setTimeout(() => setNotification(null), 3e3);
+      } else {
+        const error2 = await res.json();
+        setNotification({ type: "error", message: error2.error || "Failed to generate secret" });
+        setTimeout(() => setNotification(null), 5e3);
+        playSound("error");
+      }
+    } catch (err) {
+      setNotification({ type: "error", message: "Failed to generate secret" });
+      setTimeout(() => setNotification(null), 5e3);
+    }
+    setIsGenerating(false);
+  };
   const handleAddVariable = async () => {
     if (!newVar.name || !newVar.value) return;
     setIsLoading(true);
@@ -2045,6 +2130,69 @@ function EnvManager8Bit({ project, onBack, skipAuth = false, onBranchChange, ini
       setTimeout(() => setNotification(null), 5e3);
     }
     setDeletingVariable(null);
+  };
+  const handleExportTypes = async () => {
+    setIsLoading(true);
+    try {
+      const url = `/api/export-types?${currentProject?.path ? `projectPath=${encodeURIComponent(currentProject.path)}&` : ""}format=both`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        setTypeExportContent(data.content);
+        setShowExportTypes(true);
+        playSound("powerup");
+      } else {
+        const error2 = await res.json();
+        setNotification({ type: "error", message: error2.error || "Failed to export types" });
+        setTimeout(() => setNotification(null), 5e3);
+        playSound("error");
+      }
+    } catch (err) {
+      setNotification({ type: "error", message: "Failed to export types" });
+      setTimeout(() => setNotification(null), 5e3);
+    }
+    setIsLoading(false);
+  };
+  const handleSaveTypes = async (location) => {
+    if (location === "copy") {
+      try {
+        await navigator.clipboard.writeText(typeExportContent);
+        setNotification({ type: "success", message: "Types copied to clipboard!" });
+        setTimeout(() => setNotification(null), 3e3);
+        playSound("success");
+      } catch (err) {
+        setNotification({ type: "error", message: "Failed to copy to clipboard" });
+        setTimeout(() => setNotification(null), 3e3);
+      }
+    } else {
+      setIsLoading(true);
+      try {
+        const res = await fetch("/api/export-types", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            projectPath: currentProject?.path,
+            outputDir: currentProject?.path || "."
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setNotification({ type: "success", message: `Types saved to ${data.files.join(", ")}` });
+          setTimeout(() => setNotification(null), 5e3);
+          playSound("powerup");
+          setShowExportTypes(false);
+        } else {
+          const error2 = await res.json();
+          setNotification({ type: "error", message: error2.error || "Failed to save types" });
+          setTimeout(() => setNotification(null), 5e3);
+          playSound("error");
+        }
+      } catch (err) {
+        setNotification({ type: "error", message: "Failed to save types" });
+        setTimeout(() => setNotification(null), 5e3);
+      }
+      setIsLoading(false);
+    }
   };
   const handleImportVariables = async (parsedVariables) => {
     setIsLoading(true);
@@ -2239,18 +2387,32 @@ function EnvManager8Bit({ project, onBack, skipAuth = false, onBranchChange, ini
         ] }),
         /* @__PURE__ */ jsxs("div", { children: [
           /* @__PURE__ */ jsx(Label, { htmlFor: "var-value", className: "text-xs", children: "VALUE" }),
-          /* @__PURE__ */ jsx(
-            Input,
-            {
-              id: "var-value",
-              type: newVar.sensitive ? "password" : "text",
-              value: newVar.value,
-              onChange: (e) => setNewVar({ ...newVar, value: e.target.value }),
-              placeholder: "value",
-              className: "font-mono",
-              autoComplete: newVar.sensitive ? "new-password" : "off"
-            }
-          )
+          /* @__PURE__ */ jsxs("div", { className: "flex gap-2", children: [
+            /* @__PURE__ */ jsx(
+              Input,
+              {
+                id: "var-value",
+                type: newVar.sensitive ? "password" : "text",
+                value: newVar.value,
+                onChange: (e) => setNewVar({ ...newVar, value: e.target.value }),
+                placeholder: "value",
+                className: "font-mono flex-1",
+                autoComplete: newVar.sensitive ? "new-password" : "off"
+              }
+            ),
+            /* @__PURE__ */ jsx(
+              Button,
+              {
+                type: "button",
+                onClick: handleGenerateSecret,
+                disabled: isGenerating || !newVar.name,
+                variant: "outline",
+                size: "sm",
+                title: "Generate secret value",
+                children: /* @__PURE__ */ jsx(Sparkles, { className: "h-4 w-4" })
+              }
+            )
+          ] })
         ] }),
         /* @__PURE__ */ jsxs("div", { children: [
           /* @__PURE__ */ jsx(Label, { htmlFor: "var-desc", className: "text-xs", children: "DESCRIPTION" }),
@@ -2416,6 +2578,16 @@ function EnvManager8Bit({ project, onBack, skipAuth = false, onBranchChange, ini
                 ]
               }
             ),
+            /* @__PURE__ */ jsx(
+              Button,
+              {
+                size: "sm",
+                variant: "outline",
+                onClick: handleExportTypes,
+                title: "Export TypeScript Types",
+                children: /* @__PURE__ */ jsx(FileCode, { className: "h-4 w-4" })
+              }
+            ),
             /* @__PURE__ */ jsx(Button, { size: "sm", variant: "outline", onClick: refreshVariables, children: /* @__PURE__ */ jsx(RefreshCw, { className: "h-4 w-4" }) })
           ] })
         ] }),
@@ -2512,7 +2684,57 @@ function EnvManager8Bit({ project, onBack, skipAuth = false, onBranchChange, ini
         requiredVariables: projectStatus?.missing || [],
         existingVariables: variables
       }
-    )
+    ),
+    /* @__PURE__ */ jsx(Dialog, { open: showExportTypes, onOpenChange: setShowExportTypes, children: /* @__PURE__ */ jsxs(DialogContent, { className: "max-w-4xl max-h-[80vh] overflow-y-auto", children: [
+      /* @__PURE__ */ jsxs(DialogHeader, { children: [
+        /* @__PURE__ */ jsx(DialogTitle, { children: "Export TypeScript Types" }),
+        /* @__PURE__ */ jsx(DialogDescription, { children: "Generated TypeScript types for your environment variables" })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "space-y-4", children: [
+        /* @__PURE__ */ jsx("div", { className: "border-4 border-black bg-gray-50 p-4 rounded-none", children: /* @__PURE__ */ jsx("pre", { className: "text-xs font-mono overflow-x-auto whitespace-pre", children: typeExportContent }) }),
+        /* @__PURE__ */ jsxs("div", { className: "flex gap-2 justify-end", children: [
+          /* @__PURE__ */ jsxs(
+            Button,
+            {
+              variant: "outline",
+              onClick: () => handleSaveTypes("copy"),
+              disabled: isLoading,
+              children: [
+                /* @__PURE__ */ jsx(Copy, { className: "h-4 w-4 mr-2" }),
+                "Copy to Clipboard"
+              ]
+            }
+          ),
+          /* @__PURE__ */ jsxs(
+            Button,
+            {
+              onClick: () => handleSaveTypes("root"),
+              disabled: isLoading || !currentProject,
+              children: [
+                /* @__PURE__ */ jsx(Save, { className: "h-4 w-4 mr-2" }),
+                "Save to Project Root"
+              ]
+            }
+          )
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "text-xs text-gray-600 border-t pt-2", children: [
+          /* @__PURE__ */ jsx("p", { className: "font-bold mb-1", children: "Generated files:" }),
+          /* @__PURE__ */ jsxs("ul", { className: "space-y-1", children: [
+            /* @__PURE__ */ jsxs("li", { children: [
+              "• ",
+              /* @__PURE__ */ jsx("code", { children: "env.types.ts" }),
+              " - TypeScript interfaces and runtime objects"
+            ] }),
+            /* @__PURE__ */ jsxs("li", { children: [
+              "• ",
+              /* @__PURE__ */ jsx("code", { children: "env.d.ts" }),
+              " - Global type declarations for process.env"
+            ] })
+          ] }),
+          /* @__PURE__ */ jsx("p", { className: "mt-2", children: "Files will be saved to your project root directory." })
+        ] })
+      ] })
+    ] }) })
   ] });
 }
 

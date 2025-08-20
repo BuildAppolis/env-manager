@@ -1,0 +1,82 @@
+#!/usr/bin/env node
+
+// This is a smart wrapper that checks which version to use
+import fs from 'fs'
+import path from 'path'
+import os from 'os'
+import { spawn } from 'child_process'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+// Check for version config
+const configPath = path.join(os.homedir(), '.env-manager', 'version-config.json')
+
+function loadVersionConfig() {
+  try {
+    if (!fs.existsSync(configPath)) {
+      return { current: 'production' }
+    }
+    return JSON.parse(fs.readFileSync(configPath, 'utf-8'))
+  } catch {
+    return { current: 'production' }
+  }
+}
+
+// Get args
+const args = process.argv.slice(2)
+
+// Special handling for version command
+if (args[0] === 'version') {
+  // Always use the local version manager for version commands
+  const versionManagerPath = path.join(__dirname, 'env-manager-version.mjs')
+  const child = spawn('node', [versionManagerPath, ...args.slice(1)], {
+    stdio: 'inherit'
+  })
+  
+  child.on('exit', (code) => {
+    process.exit(code || 0)
+  })
+} else {
+  // Check which version to use
+  const config = loadVersionConfig()
+  
+  if (config.current === 'local' && config.localPath) {
+    // Use local version
+    const localCliPath = path.join(config.localPath, 'bin', 'env-manager-cli.mjs')
+    
+    if (!fs.existsSync(localCliPath)) {
+      console.error('\x1b[31m❌ Local CLI not found at:\x1b[0m')
+      console.error(`   ${localCliPath}`)
+      console.error('\x1b[33m   Falling back to production version...\x1b[0m')
+      
+      // Fallback to production
+      const child = spawn('npx', ['@buildappolis/env-manager', ...args], {
+        stdio: 'inherit'
+      })
+      
+      child.on('exit', (code) => {
+        process.exit(code || 0)
+      })
+    } else {
+      // Execute local version
+      const child = spawn('node', [localCliPath, ...args], {
+        stdio: 'inherit'
+      })
+      
+      child.on('exit', (code) => {
+        process.exit(code || 0)
+      })
+    }
+  } else {
+    // Use production version - delegate to the main CLI
+    const cliPath = path.join(__dirname, 'env-manager-cli.mjs')
+    const child = spawn('node', [cliPath, ...args], {
+      stdio: 'inherit'
+    })
+    
+    child.on('exit', (code) => {
+      process.exit(code || 0)
+    })
+  }
+}

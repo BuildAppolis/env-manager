@@ -1,0 +1,58 @@
+{
+  "taskDocumentation": {
+    "enabled": true,
+    "autoTrackFiles": true,
+    "generateSummaries": true,
+    "claudeAssisted": true,
+    "autoDetectChanges": true,
+    "archiveCompleted": true,
+    "generateChangelog": true
+  },
+  "fileTracking": {
+    "enabled": true,
+    "trackOnEdit": true,
+    "trackOnWrite": true,
+    "trackOnMultiEdit": true,
+    "trackOnCommit": true,
+    "autoDetectInterval": 300,
+    "archivePath": ".claude/file-tracking/archive"
+  },
+  "documentation": {
+    "generatePlans": true,
+    "generateSummaries": true,
+    "useTemplates": true,
+    "templatesPath": ".claude/templates",
+    "claudeModel": "claude-3",
+    "maxPromptLength": 2000
+  },
+  "changelog": {
+    "enabled": true,
+    "format": "keepachangelog",
+    "includeComparisonLinks": true,
+    "categorizeChanges": true,
+    "claudeAssisted": true,
+    "categories": ["Added", "Changed", "Deprecated", "Removed", "Fixed", "Security"]
+  },
+  "workflow": {
+    "stages": ["FUTURE", "TODO", "IN-PROGRESS", "COMPLETED", "RELEASED"],
+    "maxInProgress": 3,
+    "requireDocumentation": true,
+    "requireFileTracking": true,
+    "autoArchiveAfterRelease": true
+  },
+  "notifications": {
+    "onTaskStart": false,
+    "onTaskComplete": false,
+    "onRelease": false,
+    "useSystemNotifications": false
+  },
+  "validation": {
+    "enabled": true,
+    "blockOnError": true,
+    "autoFix": false,
+    "runOnComplete": true,
+    "includeTests": false,
+    "includeBuild": false,
+    "cacheTimeout": 300
+  }
+}

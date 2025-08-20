@@ -6,7 +6,7 @@
   "types": "index.ts",
   "type": "module",
   "bin": {
-    "env-manager": "./bin/env-manager-cli.mjs"
+    "env-manager": "./bin/env-manager"
   },
   "exports": {
     ".": {
@@ -40,9 +40,15 @@
     "build": "astro build",
     "preview": "astro preview",
     "serve": "npm run build && npm run start",
+    "typecheck": "tsc --noEmit",
+    "astro:check": "astro check",
+    "check": "npm run typecheck && npm run astro:check",
     "version:patch": "node scripts/bump-version.js patch",
     "version:minor": "node scripts/bump-version.js minor",
     "version:major": "node scripts/bump-version.js major",
+    "release:patch": "./scripts/release.sh patch",
+    "release:minor": "./scripts/release.sh minor",
+    "release:major": "./scripts/release.sh major",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {

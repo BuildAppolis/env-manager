@@ -924,6 +924,32 @@ program
     })
   })
 
+program
+  .command('version [action] [target]')
+  .description('Switch between production and local versions')
+  .action(async (action, target) => {
+    // Import the version manager module
+    const { fileURLToPath } = await import('url')
+    const { dirname, join } = await import('path')
+    const __dirname = dirname(fileURLToPath(import.meta.url))
+    const versionManagerPath = join(__dirname, 'env-manager-version.mjs')
+    
+    // Build arguments for the version manager
+    const args = []
+    if (action) args.push(action)
+    if (target) args.push(target)
+    
+    // Execute the version manager
+    const { spawn } = await import('child_process')
+    const child = spawn('node', [versionManagerPath, ...args], {
+      stdio: 'inherit'
+    })
+    
+    child.on('exit', (code) => {
+      process.exit(code || 0)
+    })
+  })
+
 // Show help if no command provided
 if (process.argv.length === 2) {
   const projectPath = process.cwd()

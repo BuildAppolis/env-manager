@@ -1,0 +1,7 @@
+2025-08-19 16:16:22|ADD|Test snapshot system||TODO
+2025-08-19 16:16:27|MOVE|Test snapshot system|TODO|IN-PROGRESS
+2025-08-19 16:16:57|ADD|move snapshot done||TODO
+2025-08-19 16:17:03|MOVE|move snapshot done|TODO|COMPLETED
+2025-08-19 16:37:10|MOVE|Test snapshot system|IN-PROGRESS|COMPLETED
+2025-08-19 16:37:17|MOVE|Test snapshot system|COMPLETED|TODO
+2025-08-19 16:37:27|MOVE|Test snapshot system|TODO|COMPLETED

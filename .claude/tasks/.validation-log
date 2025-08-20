@@ -1,0 +1,8 @@
+2025-08-19T16:37:05-05:00 | Mode: manual
+✓ pnpm run typecheck
+Errors: 0, Warnings: 0
+---
+2025-08-19T16:37:27-05:00 | Mode: pre-complete
+✓ pnpm run typecheck
+Errors: 0, Warnings: 0
+---

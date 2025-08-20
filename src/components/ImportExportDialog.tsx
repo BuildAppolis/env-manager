@@ -35,6 +35,7 @@ interface ImportExportDialogProps {
   onImport?: (variables: ParsedVariable[]) => Promise<void>
   requiredVariables?: string[]
   existingVariables?: Variable[]
+  projectConfig?: any // Will contain the env.config.ts configuration
 }
 
 export default function ImportExportDialog({ 
@@ -44,7 +45,8 @@ export default function ImportExportDialog({
   branch = 'main',
   onImport,
   requiredVariables = [],
-  existingVariables = []
+  existingVariables = [],
+  projectConfig
 }: ImportExportDialogProps) {
   const [activeTab, setActiveTab] = useState<'export' | 'import'>('export')
   const [exportFormat, setExportFormat] = useState('.env')
@@ -112,6 +114,19 @@ export default function ImportExportDialog({
     
     const existingNames = new Set(existingVariables.map(v => v.name))
     
+    // Build a map of variable configs from project config
+    const configMap = new Map<string, any>()
+    if (projectConfig?.requirements) {
+      for (const [groupName, group] of Object.entries(projectConfig.requirements)) {
+        for (const varConfig of (group as any).variables || []) {
+          configMap.set(varConfig.name, {
+            ...varConfig,
+            category: groupName
+          })
+        }
+      }
+    }
+    
     for (const line of lines) {
       const trimmed = line.trim()
       
@@ -147,25 +162,71 @@ export default function ImportExportDialog({
           cleanValue = value.slice(1, -1)
         }
         
-        // Detect if it's sensitive based on common patterns
-        const isSensitive = name.includes('SECRET') || 
-                          name.includes('KEY') || 
-                          name.includes('PASSWORD') || 
-                          name.includes('TOKEN') ||
-                          name.includes('PRIVATE')
+        // Check if this variable is in the config
+        const configData = configMap.get(name)
         
-        variables.push({
-          name,
-          value: cleanValue,
-          description: lastDescription || undefined,
-          category: currentCategory,
-          isRequired: requiredVariables.includes(name),
-          isSensitive,
-          isNew: !existingNames.has(name),
-          isDuplicate: existingNames.has(name)
-        })
+        // If it's in the config, use config properties
+        if (configData) {
+          // If value is empty and config has a default or example, suggest it
+          if (!cleanValue && (configData.default || configData.example)) {
+            cleanValue = configData.default || configData.example || ''
+          }
+          
+          variables.push({
+            name,
+            value: cleanValue,
+            description: configData.description || lastDescription || undefined,
+            category: configData.category || currentCategory,
+            isRequired: configData.required || false,
+            isSensitive: configData.sensitive || false,
+            isNew: !existingNames.has(name),
+            isDuplicate: existingNames.has(name)
+          })
+        } else {
+          // Not in config, use auto-detection
+          const isSensitive = name.includes('SECRET') || 
+                            name.includes('KEY') || 
+                            name.includes('PASSWORD') || 
+                            name.includes('TOKEN') ||
+                            name.includes('PRIVATE')
+          
+          variables.push({
+            name,
+            value: cleanValue,
+            description: lastDescription || undefined,
+            category: currentCategory,
+            isRequired: requiredVariables.includes(name),
+            isSensitive,
+            isNew: !existingNames.has(name),
+            isDuplicate: existingNames.has(name)
+          })
+        }
         
         lastDescription = ''
+      }
+    }
+    
+    // Add missing required variables from config
+    if (projectConfig?.requirements) {
+      for (const [groupName, group] of Object.entries(projectConfig.requirements)) {
+        for (const varConfig of (group as any).variables || []) {
+          // Check if this variable was imported
+          const imported = variables.find(v => v.name === varConfig.name)
+          
+          // If it's required but not imported, add it with empty/default value
+          if (varConfig.required && !imported) {
+            variables.push({
+              name: varConfig.name,
+              value: varConfig.default || varConfig.example || '',
+              description: varConfig.description,
+              category: groupName,
+              isRequired: true,
+              isSensitive: varConfig.sensitive || false,
+              isNew: !existingNames.has(varConfig.name),
+              isDuplicate: false
+            })
+          }
+        }
       }
     }
     

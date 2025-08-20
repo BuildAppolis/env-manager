@@ -5,7 +5,7 @@ import { Input } from './ui/8bit/input'
 import { Label } from './ui/8bit/label'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/8bit/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/8bit/select'
-import { Lock, Unlock, Save, Download, Upload, RefreshCw, Shield, Settings, Terminal, Key, Database, Clock, FolderOpen, History, FileEdit, Import, FileInput, FileOutput } from 'lucide-react'
+import { Lock, Unlock, Save, Download, Upload, RefreshCw, Shield, Settings, Terminal, Key, Database, Clock, FolderOpen, History, FileEdit, Import, FileInput, FileOutput, Sparkles, FileCode, Copy } from 'lucide-react'
 import ProjectSelector from './ProjectSelector'
 import MissingVariableItem from './MissingVariableItem'
 import VersionHistory from './VersionHistory'
@@ -44,6 +44,9 @@ export default function EnvManager8Bit({ project, onBack, skipAuth = false, onBr
   const [currentProject, setCurrentProject] = useState<any>(project || null)
   const [projectStatus, setProjectStatus] = useState<ValidationResults | null>(null)
   const [showImportExport, setShowImportExport] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [showExportTypes, setShowExportTypes] = useState(false)
+  const [typeExportContent, setTypeExportContent] = useState<string>('')
 
   useEffect(() => {
     if (!skipAuth) {
@@ -173,6 +176,44 @@ export default function EnvManager8Bit({ project, onBack, skipAuth = false, onBr
     loadVariables(selectedBranch)
   }
 
+  const handleGenerateSecret = async () => {
+    if (!newVar.name) {
+      setNotification({type: 'error', message: 'Please enter a variable name first'})
+      setTimeout(() => setNotification(null), 3000)
+      return
+    }
+
+    setIsGenerating(true)
+    try {
+      const res = await fetch('/api/generate-secret', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          variableName: newVar.name,
+          projectPath: currentProject?.path
+        })
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        setNewVar({...newVar, value: data.value})
+        playSound('powerup')
+        setNotification({type: 'success', message: `Generated ${data.type} secret for ${newVar.name}`})
+        setTimeout(() => setNotification(null), 3000)
+      } else {
+        const error = await res.json()
+        setNotification({type: 'error', message: error.error || 'Failed to generate secret'})
+        setTimeout(() => setNotification(null), 5000)
+        playSound('error')
+      }
+    } catch (err) {
+      setNotification({type: 'error', message: 'Failed to generate secret'})
+      setTimeout(() => setNotification(null), 5000)
+      playSound('error')
+    }
+    setIsGenerating(false)
+  }
+
   const handleAddVariable = async () => {
     if (!newVar.name || !newVar.value) return
     
@@ -257,6 +298,79 @@ export default function EnvManager8Bit({ project, onBack, skipAuth = false, onBr
       playSound('error')
     }
     setDeletingVariable(null)
+  }
+
+  const handleExportTypes = async () => {
+    setIsLoading(true)
+    try {
+      const url = `/api/export-types?${currentProject?.path ? `projectPath=${encodeURIComponent(currentProject.path)}&` : ''}format=both`
+      
+      const res = await fetch(url)
+      
+      if (res.ok) {
+        const data = await res.json()
+        setTypeExportContent(data.content)
+        setShowExportTypes(true)
+        playSound('powerup')
+      } else {
+        const error = await res.json()
+        setNotification({type: 'error', message: error.error || 'Failed to export types'})
+        setTimeout(() => setNotification(null), 5000)
+        playSound('error')
+      }
+    } catch (err) {
+      setNotification({type: 'error', message: 'Failed to export types'})
+      setTimeout(() => setNotification(null), 5000)
+      playSound('error')
+    }
+    setIsLoading(false)
+  }
+
+  const handleSaveTypes = async (location: 'root' | 'copy') => {
+    if (location === 'copy') {
+      // Copy to clipboard
+      try {
+        await navigator.clipboard.writeText(typeExportContent)
+        setNotification({type: 'success', message: 'Types copied to clipboard!'})
+        setTimeout(() => setNotification(null), 3000)
+        playSound('success')
+      } catch (err) {
+        setNotification({type: 'error', message: 'Failed to copy to clipboard'})
+        setTimeout(() => setNotification(null), 3000)
+        playSound('error')
+      }
+    } else {
+      // Save to file
+      setIsLoading(true)
+      try {
+        const res = await fetch('/api/export-types', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            projectPath: currentProject?.path,
+            outputDir: currentProject?.path || '.'
+          })
+        })
+
+        if (res.ok) {
+          const data = await res.json()
+          setNotification({type: 'success', message: `Types saved to ${data.files.join(', ')}`})
+          setTimeout(() => setNotification(null), 5000)
+          playSound('powerup')
+          setShowExportTypes(false)
+        } else {
+          const error = await res.json()
+          setNotification({type: 'error', message: error.error || 'Failed to save types'})
+          setTimeout(() => setNotification(null), 5000)
+          playSound('error')
+        }
+      } catch (err) {
+        setNotification({type: 'error', message: 'Failed to save types'})
+        setTimeout(() => setNotification(null), 5000)
+        playSound('error')
+      }
+      setIsLoading(false)
+    }
   }
 
   const handleImportVariables = async (parsedVariables: any[]) => {
@@ -501,15 +615,27 @@ export default function EnvManager8Bit({ project, onBack, skipAuth = false, onBr
               </div>
               <div>
                 <Label htmlFor="var-value" className="text-xs">VALUE</Label>
-                <Input
-                  id="var-value"
-                  type={newVar.sensitive ? "password" : "text"}
-                  value={newVar.value}
-                  onChange={(e) => setNewVar({...newVar, value: e.target.value})}
-                  placeholder="value"
-                  className="font-mono"
-                  autoComplete={newVar.sensitive ? "new-password" : "off"}
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="var-value"
+                    type={newVar.sensitive ? "password" : "text"}
+                    value={newVar.value}
+                    onChange={(e) => setNewVar({...newVar, value: e.target.value})}
+                    placeholder="value"
+                    className="font-mono flex-1"
+                    autoComplete={newVar.sensitive ? "new-password" : "off"}
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleGenerateSecret}
+                    disabled={isGenerating || !newVar.name}
+                    variant="outline"
+                    size="sm"
+                    title="Generate secret value"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
               <div>
                 <Label htmlFor="var-desc" className="text-xs">DESCRIPTION</Label>
@@ -663,6 +789,14 @@ export default function EnvManager8Bit({ project, onBack, skipAuth = false, onBr
                   <FileInput className="h-4 w-4 mr-1" />
                   <FileOutput className="h-4 w-4" />
                 </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={handleExportTypes}
+                  title="Export TypeScript Types"
+                >
+                  <FileCode className="h-4 w-4" />
+                </Button>
                 <Button size="sm" variant="outline" onClick={refreshVariables}>
                   <RefreshCw className="h-4 w-4" />
                 </Button>
@@ -787,6 +921,55 @@ export default function EnvManager8Bit({ project, onBack, skipAuth = false, onBr
         requiredVariables={projectStatus?.missing || []}
         existingVariables={variables}
       />
+
+      {/* TypeScript Export Dialog */}
+      <Dialog open={showExportTypes} onOpenChange={setShowExportTypes}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Export TypeScript Types</DialogTitle>
+            <DialogDescription>
+              Generated TypeScript types for your environment variables
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Preview */}
+            <div className="border-4 border-black bg-gray-50 p-4 rounded-none">
+              <pre className="text-xs font-mono overflow-x-auto whitespace-pre">
+                {typeExportContent}
+              </pre>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => handleSaveTypes('copy')}
+                disabled={isLoading}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copy to Clipboard
+              </Button>
+              <Button
+                onClick={() => handleSaveTypes('root')}
+                disabled={isLoading || !currentProject}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save to Project Root
+              </Button>
+            </div>
+
+            <div className="text-xs text-gray-600 border-t pt-2">
+              <p className="font-bold mb-1">Generated files:</p>
+              <ul className="space-y-1">
+                <li>• <code>env.types.ts</code> - TypeScript interfaces and runtime objects</li>
+                <li>• <code>env.d.ts</code> - Global type declarations for process.env</li>
+              </ul>
+              <p className="mt-2">Files will be saved to your project root directory.</p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
