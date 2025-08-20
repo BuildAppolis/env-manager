@@ -7,6 +7,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2025-08-20
+
+### Added
+- **Smart Task Management System (tm)**
+  - Complete task workflow automation with TODO → IN-PROGRESS → COMPLETED → RELEASED stages
+  - Pre-completion validation system with automatic code quality checks
+  - Git-aware undo with file reversion capabilities
+  - Advanced task search with relevance ranking
+  - Complete task movement history and audit trail
+  - Automatic file tracking for modified files during tasks
+  - AI-assisted documentation generation with Claude integration
+
+- **Pre-Completion Validation System**
+  - Automatic code quality checks before task completion
+  - Auto-detects typecheck, lint, test commands across project types
+  - Supports Node.js, Python, Rust, Go projects
+  - Configurable blocking with --force override option
+  - Smart 5-minute cache for fast re-validation
+  - Auto-fix support for linting issues
+
+- **Git Snapshot System**
+  - Automatic git state capture on task movements
+  - Smart undo that can revert file changes
+  - Conflict detection and backup branches
+  - Interactive mode for selective file reversion
+  - Preview changes before applying
+
+- **Type-Safe Environment Variable Export**
+  - Separate client/server TypeScript interfaces
+  - Runtime validation with proper type definitions
+  - Export button with preview and save functionality
+  - Support for multiple TypeScript export formats
+
+- **Enhanced Variable Management**
+  - Advanced sorting and filtering with category grouping
+  - Inline variable editing capabilities
+  - Visual distinction between client (<) and server (=) variables
+  - Smart clipboard import with env.config.ts matching
+  - Automatic secret generation (UUID, JWT, API keys, passwords)
+
+### Changed
+- Variable cards now show type indicators and category grouping
+- Import dialog enhanced with config matching and required variable detection
+- Generate button (✨) added to UI for context-aware secret creation
+
+### Fixed
+- TypeScript errors with Lucide icon title props
+- Missing hasPassword method in database API
+- HotReloadManager method calls and event types
+- ReloadEvent type correction from 'update' to 'variables_changed'
+
 ## [1.4.12] - 2025-08-19
 
 ### Fixed
