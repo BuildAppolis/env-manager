@@ -1,5 +1,5 @@
 import { c as createComponent, a as createAstro, d as renderComponent, r as renderTemplate, m as maybeRenderHead } from '../chunks/astro/server_DE_7F_eO.mjs';
-import { $ as $$Layout8Bit, V as VersionFooter } from '../chunks/VersionFooter_6LW8x2WP.mjs';
+import { $ as $$Layout8Bit, V as VersionFooter } from '../chunks/VersionFooter_Vpp1rbF1.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import { useState, useEffect, useRef } from 'react';
 import { cva } from 'class-variance-authority';
