@@ -1,0 +1,5 @@
+ M .claude/tasks/.last-task
+ M .claude/tasks/.task-history.log
+ M .claude/tasks/IN-PROGRESS.md
+ M .claude/tasks/TODO.md
+?? .claude/tasks/.snapshots/1755709852/

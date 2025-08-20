@@ -8,7 +8,9 @@
 tm a "Fix login bug"     # Add task with plan
 tm s login               # Start (begins file tracking)
 tm update login          # Update progress
-tm d login               # Done (complete with summary)
+tm d login               # Done (interactive mode - prompts for details)
+tm d login "Fixed bug"   # Done (quick mode - no prompts!)
+tm d login --force       # Skip validation checks
 tm w                     # Show what's in progress
 tm l                     # List all tasks
 tm c                     # Show configuration
@@ -31,19 +33,22 @@ tm snapshot list         # View git state snapshots
 
 ### 🚀 Complete Task Workflow
 ```bash
-# Using tm shortcuts
-tm a "Implement new feature"      # Add with plan
-tm s "new feature"                # Start with file tracking
-tm update "new feature"           # Update progress  
-tm d "new feature"                # Complete with summary
-tm release                        # Generate changelog
+# Quick workflow (AI/CLI friendly - no prompts!)
+tm a "Implement new feature"                      # Add task
+tm s "new feature"                                # Start with tracking
+tm d "new feature" "Feature implemented"          # Quick complete
+tm release                                        # Generate changelog
 
-# Or using full scripts
-.claude/tasks/scripts/task-flow.sh add "Implement new feature"
-.claude/tasks/scripts/task-flow.sh start "new feature"
-.claude/tasks/scripts/task-flow.sh update "new feature"
-.claude/tasks/scripts/task-flow.sh complete "new feature"
-.claude/tasks/scripts/task-flow.sh release
+# Interactive workflow (with prompts)
+tm a "Implement new feature"                      # Add task
+tm s "new feature"                                # Start with tracking
+tm update "new feature"                           # Update progress
+tm d "new feature"                                # Interactive complete
+tm release                                        # Generate changelog
+
+# AI-friendly script (new!)
+.claude/tasks/scripts/task-flow-ai.sh complete "feature" "Done"
+echo "Completed task" | .claude/tasks/scripts/task-flow-ai.sh complete "feature"
 ```
 
 ### 📁 File Tracking
@@ -94,6 +99,42 @@ tm changelog                     # Generate changelog
 .claude/tasks/scripts/changelog-gen.sh preview      # Preview
 .claude/tasks/scripts/changelog-gen.sh claude       # AI-assisted
 .claude/tasks/scripts/release-tasks.sh              # Move to RELEASED
+```
+
+## AI/Non-Interactive Mode
+
+### 🤖 Quick Completion (No Prompts)
+Perfect for AI assistants and automation:
+```bash
+# Complete with summary - no prompts!
+tm done "task" "Fixed the bug"
+
+# With validation skip
+tm done "task" "Quick fix" --force
+
+# Pipe summary from another command
+echo "Security patches applied" | tm done "security"
+
+# Using the AI-friendly script directly
+.claude/tasks/scripts/task-flow-ai.sh complete "task" "Summary"
+```
+
+### 🎯 Smart Mode Detection
+The system automatically detects:
+- **Quick Mode**: When summary is provided or input is piped
+- **Interactive Mode**: When running in terminal without summary
+- **Force Mode**: When `--force` flag is used (skips validation)
+
+### ⚙️ AI Configuration
+Configure in `.claude/tasks/config.json`:
+```json
+"ai": {
+  "enabled": true,
+  "preferNonInteractive": true,
+  "defaultSummary": "Task completed",
+  "skipDetailedQuestions": true,
+  "autoDetectMode": true
+}
 ```
 
 ## Workflow Stages
@@ -223,7 +264,8 @@ task-config set .workflow.maxInProgress 5
 ### Scripts Location (`.claude/tasks/scripts/`)
 All task-related scripts are now in:
 - `task-manager.sh` - Core task management
-- `task-flow.sh` - Integrated workflow
+- `task-flow.sh` - Original integrated workflow (interactive)
+- `task-flow-ai.sh` - AI-friendly workflow (non-interactive)
 - `file-tracker.sh` - File modification tracking
 - `changelog-gen.sh` - Changelog generation
 - `task-config.sh` - Configuration manager
@@ -317,19 +359,23 @@ tm snapshot revert 1755638187  # Revert if it looks good
 ## Example Complete Flow
 
 ```bash
-# Quick workflow with tm:
-tm a "Add user authentication system"    # Add with plan
-tm s authentication                      # Start (auto file tracking)
-tm update authentication                 # Update progress (optional)
-tm d authentication                      # Complete with summary
-tm r                                     # Release with changelog
+# AI/CLI Quick workflow (no prompts!):
+tm a "Add user authentication system"              # Add task
+tm s authentication                                # Start tracking
+tm d authentication "Auth system implemented"      # Quick complete
+tm r                                              # Release
 
-# Or traditional workflow:
-.claude/tasks/scripts/task-flow.sh add "Add user authentication system"
-.claude/tasks/scripts/task-flow.sh start "authentication"
-.claude/tasks/scripts/task-flow.sh update "authentication"
-.claude/tasks/scripts/task-flow.sh complete "authentication"
-.claude/tasks/scripts/task-flow.sh release
+# Interactive workflow (with prompts):
+tm a "Add user authentication system"              # Add task
+tm s authentication                                # Start tracking
+tm update authentication                           # Update progress
+tm d authentication                                # Interactive complete
+tm r                                              # Release
+
+# Automation-friendly workflow:
+echo "Fixed security issue" | tm d "security"      # Pipe summary
+tm d "bug" "Fixed login bug" --force              # Skip validation
+.claude/tasks/scripts/task-flow-ai.sh complete "feature" "Done"
 ```
 
 ## Smart Task Management

@@ -1,6 +1,8 @@
 import { renderers } from './renderers.mjs';
-import { c as createExports, s as serverEntrypointModule } from './chunks/_@astrojs-ssr-adapter_2VC_Lff6.mjs';
-import { manifest } from './manifest_DiCrwkSz.mjs';
+import { c as createExports, s as serverEntrypointModule } from './chunks/_@astrojs-ssr-adapter_CiZMU4_s.mjs';
+import { manifest } from './manifest_D3sMa4Gh.mjs';
+
+const serverIslandMap = new Map();;
 
 const _page0 = () => import('./pages/_image.astro.mjs');
 const _page1 = () => import('./pages/api/auth/status.astro.mjs');
@@ -25,9 +27,8 @@ const _page19 = () => import('./pages/api/versions/restore.astro.mjs');
 const _page20 = () => import('./pages/api/versions.astro.mjs');
 const _page21 = () => import('./pages/index.astro.mjs');
 const _page22 = () => import('./pages/_---slug_.astro.mjs');
-
 const pageMap = new Map([
-    ["node_modules/.pnpm/astro@4.16.18_@types+node@20.19.11_lightningcss@1.30.1_rollup@4.46.3_typescript@5.9.2/node_modules/astro/dist/assets/endpoint/node.js", _page0],
+    ["node_modules/.pnpm/astro@5.13.2_@types+node@20.19.11_jiti@2.5.1_lightningcss@1.30.1_rollup@4.46.4_typescript@5.9.2_yaml@2.8.1/node_modules/astro/dist/assets/endpoint/node.js", _page0],
     ["src/pages/api/auth/status.ts", _page1],
     ["src/pages/api/auth.ts", _page2],
     ["src/pages/api/branches.ts", _page3],
@@ -51,11 +52,12 @@ const pageMap = new Map([
     ["src/pages/index.astro", _page21],
     ["src/pages/[...slug].astro", _page22]
 ]);
-const serverIslandMap = new Map();
+
 const _manifest = Object.assign(manifest, {
     pageMap,
     serverIslandMap,
     renderers,
+    actions: () => import('./_noop-actions.mjs'),
     middleware: () => import('./_noop-middleware.mjs')
 });
 const _args = {
@@ -64,14 +66,15 @@ const _args = {
     "server": "file:///home/cory-ubuntu/coding/projects/env-manager/dist/server/",
     "host": true,
     "port": 6969,
-    "assets": "_astro"
+    "assets": "_astro",
+    "experimentalStaticHeaders": false
 };
 const _exports = createExports(_manifest, _args);
 const handler = _exports['handler'];
 const startServer = _exports['startServer'];
 const options = _exports['options'];
 const _start = 'start';
-{
+if (Object.prototype.hasOwnProperty.call(serverEntrypointModule, _start)) {
 	serverEntrypointModule[_start](_manifest, _args);
 }
 

@@ -110,10 +110,19 @@ case "${1:-help}" in
     done|complete|d)
         shift
         if [ $# -eq 0 ]; then
-            echo -e "${RED}❌ Usage: tm done <pattern> [--force]${NC}"
+            echo -e "${RED}❌ Usage: tm done <pattern> [summary] [--force]${NC}"
+            echo -e "${YELLOW}Examples:${NC}"
+            echo "  tm done 'login'                    # Interactive mode"
+            echo "  tm done 'login' 'Fixed bug'        # Quick mode with summary"
+            echo "  tm done 'login' --force            # Skip validation"
             exit 1
         fi
-        "$SCRIPTS_DIR/task-flow.sh" complete "$@"
+        # Use AI-friendly version if available, otherwise fallback
+        if [ -f "$SCRIPTS_DIR/task-flow-ai.sh" ]; then
+            "$SCRIPTS_DIR/task-flow-ai.sh" complete "$@"
+        else
+            "$SCRIPTS_DIR/task-flow.sh" complete "$@"
+        fi
         ;;
         
     # Quick task listing

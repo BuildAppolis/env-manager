@@ -7,8 +7,6 @@ Tasks that are planned and ready to be worked on when time permits. These are pr
 
 ## High Priority
 
-## Medium Priority
-
 ### [🚀] Add support for Docker environment files
 **Category:** Features  
 **Priority:** Medium  

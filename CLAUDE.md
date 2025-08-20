@@ -26,7 +26,9 @@ Located at project root, provides short commands for all task operations:
 # Single letter shortcuts
 tm a "Fix login bug"    # Add task with plan
 tm s login              # Start task (begins file tracking)
-tm d login              # Done/complete task with summary
+tm d login              # Done (interactive - prompts for details)
+tm d login "Fixed"      # Done (quick mode - no prompts!)
+tm d login --force      # Done (skip validation)
 tm w                    # Show what's in progress (WIP)
 tm l                    # List all tasks
 tm c                    # Show configuration
@@ -60,6 +62,31 @@ ts bug          # Task Start
 td bug          # Task Done
 tw              # Task WIP
 tl              # Task List
+```
+
+## AI-Friendly Task Completion
+
+**IMPORTANT FOR CLAUDE**: Use quick mode to avoid interactive prompts:
+
+```bash
+# ✅ GOOD - Quick mode (no prompts)
+tm done "task" "Summary of what was done"
+tm done "task" "Fixed bug" --force
+
+# ❌ AVOID - Interactive mode (will hang waiting for input)
+tm done "task"  # This will wait for input you can't provide!
+```
+
+**Quick Completion Examples:**
+```bash
+# Complete with summary
+tm done "login" "Fixed authentication bug"
+
+# Skip validation when needed
+tm done "task" "Quick fix" --force
+
+# Pipe summary
+echo "Applied security patches" | tm done "security"
 ```
 
 ## Task Management Workflow

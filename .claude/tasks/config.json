@@ -54,5 +54,12 @@
     "includeTests": false,
     "includeBuild": false,
     "cacheTimeout": 300
+  },
+  "ai": {
+    "enabled": true,
+    "preferNonInteractive": true,
+    "defaultSummary": "Task completed",
+    "skipDetailedQuestions": true,
+    "autoDetectMode": true
   }
 }
