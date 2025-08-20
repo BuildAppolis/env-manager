@@ -23,7 +23,9 @@ BuildAppolis Env-Manager is a powerful, secure environment variable management s
 - 🔄 **Auto-Migration** - Automatic config file migrations on updates
 - 📸 **Snapshots** - Create and restore configuration snapshots
 - ✅ **Validation** - Validate requirements against project configurations
-- 🎯 **Type-Safe** - Full TypeScript support
+- 🎯 **Type-Safe** - Full TypeScript support with auto-generated types
+- 🎨 **Typed Variables** - Get typed environment variables with IntelliSense
+- 🔒 **Client/Server Separation** - Separate typed exports for client and server vars
 - 🌐 **Web UI** - Beautiful, responsive management interface
 - 📦 **Export/Import** - Generate .env files with proper formatting
 - 🏢 **Multi-Project** - Support for multiple project configurations
@@ -193,6 +195,158 @@ If you're having issues:
    ```bash
    rm -rf ~/.env-manager-data/<project-name>.db
    ```
+
+## 🎨 TypeScript Integration - Typed Environment Variables
+
+One of the most powerful features of Env-Manager is automatic TypeScript type generation for your environment variables. Get full type safety and IntelliSense for all your env vars!
+
+### Auto-Generated Types
+
+Env-Manager automatically generates TypeScript types from your configuration:
+
+```typescript
+// Import the typed environment variables
+import { env, clientEnv, serverEnv, getEnv } from './env.types'
+
+// Full type safety and IntelliSense!
+const apiUrl = env.API_URL           // string
+const port = env.PORT                 // number
+const isProduction = env.IS_PROD     // boolean
+
+// Type-safe getter function
+const dbUrl = getEnv('DATABASE_URL') // knows it's a string!
+
+// Separated client/server variables for security
+const publicKey = clientEnv.NEXT_PUBLIC_API_KEY  // Client-safe
+const secret = serverEnv.DATABASE_PASSWORD       // Server-only
+```
+
+### Generate Types Command
+
+```bash
+# Generate TypeScript types for your environment variables
+env-manager generate-types
+
+# This creates:
+# - env.types.ts    - Typed exports with interfaces and runtime objects
+# - env.d.ts        - Global type declarations for process.env
+```
+
+### Example Generated Types
+
+```typescript
+// env.types.ts
+export interface ClientEnvVariables {
+  // Public/Client variables (safe for browser)
+  NEXT_PUBLIC_API_URL: string
+  NEXT_PUBLIC_APP_NAME?: string
+}
+
+export interface ServerEnvVariables {
+  // Private/Server variables (sensitive data)
+  DATABASE_URL: string
+  API_SECRET: string
+  REDIS_URL?: string
+}
+
+// Runtime objects with full type safety
+export const clientEnv = {
+  NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL as string,
+  NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME as string | undefined,
+} as const satisfies ClientEnvVariables
+
+export const serverEnv = {
+  DATABASE_URL: process.env.DATABASE_URL as string,
+  API_SECRET: process.env.API_SECRET as string,
+  REDIS_URL: process.env.REDIS_URL as string | undefined,
+} as const satisfies ServerEnvVariables
+
+// Type-safe getter
+export function getEnv<K extends keyof EnvVariables>(key: K): EnvVariables[K] {
+  return env[key]
+}
+
+// Validation functions
+export function validateEnv(): void {
+  // Throws if required variables are missing
+}
+```
+
+### Configuration with Types
+
+Define your variables with proper types in `env.config.ts`:
+
+```typescript
+export default {
+  requirements: {
+    database: {
+      variables: [
+        {
+          name: 'DATABASE_URL',
+          type: 'url',        // Will be typed as string
+          required: true,
+          sensitive: true
+        },
+        {
+          name: 'DB_POOL_SIZE',
+          type: 'number',     // Will be typed as number
+          required: false,
+          default: '10'
+        },
+        {
+          name: 'ENABLE_DEBUG',
+          type: 'boolean',    // Will be typed as boolean
+          required: false
+        }
+      ]
+    }
+  }
+}
+```
+
+### Supported Types
+
+| Config Type | TypeScript Type | Description |
+|------------|----------------|-------------|
+| `string` | `string` | Default text values |
+| `number` | `number` | Numeric values |
+| `boolean` | `boolean` | True/false values |
+| `port` | `number` | Port numbers (validated) |
+| `url` | `string` | URL strings (validated) |
+| `email` | `string` | Email addresses (validated) |
+| `json` | `Record<string, any>` | JSON objects |
+| `path` | `string` | File/directory paths |
+
+### Framework-Specific Examples
+
+#### Next.js with Typed Env
+```typescript
+// app/api/route.ts
+import { serverEnv, validateServerEnv } from '@/env.types'
+
+export async function GET() {
+  // Validate on startup
+  validateServerEnv()
+  
+  // Use with full type safety
+  const db = await connect(serverEnv.DATABASE_URL)
+  return Response.json({ status: 'ok' })
+}
+```
+
+#### React Component with Typed Env
+```tsx
+// components/ApiClient.tsx
+import { clientEnv } from '@/env.types'
+
+function ApiClient() {
+  // TypeScript knows these are strings!
+  const apiUrl = clientEnv.NEXT_PUBLIC_API_URL
+  const appName = clientEnv.NEXT_PUBLIC_APP_NAME || 'My App'
+  
+  return <div>Connecting to {apiUrl}</div>
+}
+```
 
 ## 🎯 Framework Integration
 

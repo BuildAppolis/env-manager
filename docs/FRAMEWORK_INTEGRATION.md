@@ -2,7 +2,44 @@
 
 This guide shows how to integrate BuildAppolis Env-Manager with popular frameworks.
 
+## 🎨 TypeScript Integration - The Power of Typed Environment Variables
+
+One of Env-Manager's most powerful features is **automatic TypeScript type generation** for your environment variables. This provides:
+
+- ✅ **Full IntelliSense** - Autocomplete for all your env vars
+- ✅ **Type Safety** - TypeScript knows if a var is string, number, or boolean
+- ✅ **Client/Server Separation** - Separate typed exports prevent leaking server secrets to client
+- ✅ **Validation Functions** - Runtime validation that throws if required vars are missing
+- ✅ **Zero Config** - Just run `env-manager generate-types` and import!
+
+### Quick Example
+
+```typescript
+// Instead of this (no type safety):
+const apiUrl = process.env.NEXT_PUBLIC_API_URL  // string | undefined
+const port = process.env.PORT ? parseInt(process.env.PORT) : 3000  // manual parsing
+
+// You get this (full type safety):
+import { clientEnv, serverEnv } from './env.types'
+
+const apiUrl = clientEnv.NEXT_PUBLIC_API_URL  // string (TypeScript knows!)
+const port = serverEnv.PORT                   // number (already parsed!)
+```
+
+### How It Works
+
+1. Define your variables with types in `env.config.ts`
+2. Run `env-manager generate-types`
+3. Import and use your typed variables!
+
+The generated types automatically:
+- Separate client/server variables based on naming patterns (NEXT_PUBLIC_, VITE_, etc.)
+- Parse number and boolean types
+- Mark optional variables with TypeScript's optional operator
+- Provide validation functions for runtime checks
+
 ## Table of Contents
+- [TypeScript Integration](#typescript-integration---the-power-of-typed-environment-variables)
 - [Next.js](#nextjs)
 - [Astro](#astro)
 - [Vue/Nuxt](#vuenuxt)
@@ -41,9 +78,16 @@ export default {
       variables: [
         {
           name: 'DATABASE_URL',
+          type: 'url',  // Will be typed as string
           description: 'PostgreSQL connection string',
           sensitive: true,
-          validation: (value: string) => value.startsWith('postgresql://'),
+          required: true,
+        },
+        {
+          name: 'DB_POOL_SIZE',
+          type: 'number',  // Will be typed as number
+          description: 'Database connection pool size',
+          default: '10',
         },
       ],
     },
@@ -52,14 +96,16 @@ export default {
       variables: [
         {
           name: 'NEXTAUTH_URL',
+          type: 'url',
           description: 'NextAuth URL',
           default: 'http://localhost:3000',
         },
         {
           name: 'NEXTAUTH_SECRET',
+          type: 'string',
           description: 'NextAuth secret key',
           sensitive: true,
-          generate: () => require('crypto').randomBytes(32).toString('hex'),
+          required: true,
         },
       ],
     },
@@ -68,8 +114,15 @@ export default {
       variables: [
         {
           name: 'NEXT_PUBLIC_API_URL',
+          type: 'url',
           description: 'Public API endpoint',
           default: 'http://localhost:3000/api',
+        },
+        {
+          name: 'NEXT_PUBLIC_APP_NAME',
+          type: 'string',
+          description: 'Application name',
+          default: 'My App',
         },
       ],
     },
@@ -77,32 +130,112 @@ export default {
 }
 ```
 
-### 2. Update your package.json scripts
+### 2. Generate TypeScript types
+
+```bash
+# Generate typed exports for your environment variables
+env-manager generate-types
+
+# This creates:
+# - env.types.ts    - Typed exports with interfaces and runtime objects
+# - env.d.ts        - Global type declarations for process.env
+```
+
+### 3. Update your package.json scripts
 
 ```json
 {
   "scripts": {
     "dev": "env-manager start & next dev",
-    "build": "next build",
-    "start": "next start"
+    "build": "env-manager generate-types && next build",
+    "start": "next start",
+    "types": "env-manager generate-types"
   }
 }
 ```
 
-### 3. Access variables in your app
+### 4. Use typed variables in your app
 
+#### Server Components (App Router)
 ```typescript
-// app/api/route.ts
-export async function GET() {
-  const dbUrl = process.env.DATABASE_URL
-  // Variables are automatically loaded from env-manager
-}
+// app/api/auth/route.ts
+import { serverEnv, validateServerEnv } from '@/env.types'
 
-// app/page.tsx
-export default function Page() {
-  // Public variables are available client-side
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL
-  return <div>API: {apiUrl}</div>
+export async function GET() {
+  // Validate on startup (throws if required vars missing)
+  validateServerEnv()
+  
+  // Full type safety - TypeScript knows these types!
+  const dbUrl = serverEnv.DATABASE_URL         // string
+  const poolSize = serverEnv.DB_POOL_SIZE      // number
+  const authSecret = serverEnv.NEXTAUTH_SECRET // string
+  
+  // Connect to database with typed config
+  const pool = createPool(dbUrl, { max: poolSize })
+  
+  return Response.json({ status: 'authenticated' })
+}
+```
+
+#### Client Components
+```typescript
+// app/components/ApiClient.tsx
+'use client'
+
+import { clientEnv, validateClientEnv } from '@/env.types'
+
+export function ApiClient() {
+  // Only client-safe variables are available
+  const apiUrl = clientEnv.NEXT_PUBLIC_API_URL         // string
+  const appName = clientEnv.NEXT_PUBLIC_APP_NAME || 'App' // string | undefined
+  
+  // TypeScript will error if you try to access server vars!
+  // const secret = clientEnv.DATABASE_URL // ❌ ERROR: Property doesn't exist
+  
+  return (
+    <div>
+      <h1>{appName}</h1>
+      <p>API: {apiUrl}</p>
+    </div>
+  )
+}
+```
+
+#### Pages Router
+```typescript
+// pages/api/data.ts
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { serverEnv, getEnv } from '@/env.types'
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  // Use typed getter function
+  const dbUrl = getEnv('DATABASE_URL')     // TypeScript knows it's a string!
+  const poolSize = getEnv('DB_POOL_SIZE')  // TypeScript knows it's a number!
+  
+  // Or use the serverEnv object
+  const authUrl = serverEnv.NEXTAUTH_URL
+  
+  res.status(200).json({ success: true })
+}
+```
+
+#### Middleware
+```typescript
+// middleware.ts
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { serverEnv } from '@/env.types'
+
+export function middleware(request: NextRequest) {
+  // Type-safe environment variables in middleware
+  const authSecret = serverEnv.NEXTAUTH_SECRET
+  const authUrl = serverEnv.NEXTAUTH_URL
+  
+  // Your middleware logic with typed vars
+  return NextResponse.next()
 }
 ```
 
@@ -121,17 +254,46 @@ export default {
       variables: [
         {
           name: 'CONTENTFUL_SPACE_ID',
+          type: 'string',
           description: 'Contentful Space ID',
+          required: true,
         },
         {
           name: 'CONTENTFUL_ACCESS_TOKEN',
+          type: 'string',
           description: 'Contentful Access Token',
           sensitive: true,
+          required: true,
         },
         {
-          name: 'PUBLIC_SITE_URL',
+          name: 'ASTRO_PUBLIC_SITE_URL',  // Note: ASTRO_PUBLIC_ prefix for client vars
+          type: 'url',
           description: 'Public site URL',
           default: 'http://localhost:4321',
+        },
+        {
+          name: 'ASTRO_PUBLIC_API_ENDPOINT',
+          type: 'url',
+          description: 'Public API endpoint',
+          default: 'http://localhost:4321/api',
+        },
+      ],
+    },
+    server: {
+      required: true,
+      variables: [
+        {
+          name: 'DATABASE_URL',
+          type: 'url',
+          description: 'Database connection',
+          sensitive: true,
+          required: true,
+        },
+        {
+          name: 'CACHE_TTL',
+          type: 'number',
+          description: 'Cache TTL in seconds',
+          default: '3600',
         },
       ],
     },
@@ -139,35 +301,109 @@ export default {
 }
 ```
 
-### 2. Update astro.config.mjs
+### 2. Generate TypeScript types
+
+```bash
+# Generate typed exports
+env-manager generate-types
+```
+
+### 3. Update astro.config.mjs
 
 ```javascript
 // astro.config.mjs
 import { defineConfig } from 'astro/config'
+import { clientEnv } from './env.types'
 
-// Env-manager variables are loaded automatically
+// Use typed client variables
 export default defineConfig({
-  site: process.env.PUBLIC_SITE_URL,
+  site: clientEnv.ASTRO_PUBLIC_SITE_URL,
   integrations: [
     // your integrations
   ],
 })
 ```
 
-### 3. Use in your components
+### 4. Use typed variables in your components
 
+#### Server-side (Astro Components)
 ```astro
 ---
 // src/pages/index.astro
-const spaceId = import.meta.env.CONTENTFUL_SPACE_ID
-const siteUrl = import.meta.env.PUBLIC_SITE_URL
+import { serverEnv, clientEnv, validateEnv } from '../../env.types'
+
+// Validate environment on startup
+validateEnv()
+
+// Server-side variables (only available in frontmatter)
+const spaceId = serverEnv.CONTENTFUL_SPACE_ID      // string
+const accessToken = serverEnv.CONTENTFUL_ACCESS_TOKEN // string
+const cacheTtl = serverEnv.CACHE_TTL               // number
+
+// Fetch data with typed config
+const content = await fetchContentful(spaceId, accessToken, {
+  cache: cacheTtl
+})
+
+// Client variables available everywhere
+const siteUrl = clientEnv.ASTRO_PUBLIC_SITE_URL
 ---
 
 <html>
   <body>
     <h1>Site: {siteUrl}</h1>
+    <!-- Client vars can be used in templates -->
   </body>
 </html>
+```
+
+#### API Routes
+```typescript
+// src/pages/api/data.ts
+import type { APIRoute } from 'astro'
+import { serverEnv, validateServerEnv } from '../../../env.types'
+
+export const GET: APIRoute = async ({ params, request }) => {
+  // Validate server environment
+  validateServerEnv()
+  
+  // Use typed server variables
+  const dbUrl = serverEnv.DATABASE_URL       // string
+  const cacheTtl = serverEnv.CACHE_TTL       // number
+  
+  // Your API logic with typed vars
+  const data = await fetchFromDB(dbUrl)
+  
+  return new Response(
+    JSON.stringify(data),
+    {
+      headers: {
+        'Cache-Control': `max-age=${cacheTtl}`
+      }
+    }
+  )
+}
+```
+
+#### Client-side Scripts
+```astro
+---
+// src/components/ApiClient.astro
+---
+
+<script>
+  // Import client-only variables in client scripts
+  import { clientEnv } from '../../env.types'
+  
+  // TypeScript knows these are strings!
+  const apiEndpoint = clientEnv.ASTRO_PUBLIC_API_ENDPOINT
+  const siteUrl = clientEnv.ASTRO_PUBLIC_SITE_URL
+  
+  // Make API calls with typed config
+  fetch(apiEndpoint + '/data')
+    .then(res => res.json())
+    .then(data => console.log(data))
+</script>
 ```
 
 ## Vue/Nuxt
